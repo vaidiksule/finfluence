@@ -3,6 +3,7 @@ import { getGraphStore } from '@/lib/graph/store';
 
 export async function GET() {
   const store = getGraphStore();
+  await store.hydratePersistedMarketData();
   const nodes = store.getAllNodes();
   const edges = store.getAllEdges();
 

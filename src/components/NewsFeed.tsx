@@ -14,8 +14,8 @@ export default function NewsFeed({ articles, onSelectArticle }: NewsFeedProps) {
     return (
       <div className="flex h-48 flex-col items-center justify-center p-6 text-center text-zinc-500 text-xs font-sans">
         <Newspaper className="h-6 w-6 mb-2 text-zinc-600 stroke-[1.5]" />
-        <span>No articles ingested yet.</span>
-        <span className="text-[10px] text-zinc-600 mt-1">Start a scenario replay or wait for live polling.</span>
+        <span>No scenario articles ingested yet.</span>
+        <span className="text-[10px] text-zinc-600 mt-1">Start an illustrative replay to inspect its source narrative.</span>
       </div>
     );
   }

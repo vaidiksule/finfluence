@@ -9,6 +9,7 @@ export async function GET(request: Request) {
     const topK = parseInt(searchParams.get('top') || '8', 10);
 
     const store = getGraphStore();
+    await store.hydratePersistedMarketData();
     const paths = store.getTopPaths(eventId, maxHops, topK);
 
     return NextResponse.json({

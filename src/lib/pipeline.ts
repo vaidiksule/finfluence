@@ -1,6 +1,7 @@
 import { getGraphStore } from './graph/store';
 import { extractEventAndEdges } from './llm/openai';
 import { GraphEdge, GraphNode, IngestedArticle, SSEMessage } from './types';
+import { appendArticleRecord } from './persistence/local';
 
 // Global Event Broadcaster for Server-Sent Events (SSE)
 type SSEListener = (msg: SSEMessage) => void;
@@ -37,6 +38,7 @@ export async function processArticlePipeline(article: IngestedArticle): Promise<
   nodes_added: number;
   edges_added: number;
 }> {
+  await appendArticleRecord(article);
   broadcastSSE('article_ingested', article);
 
   // 1. Single-Pass LLM Extraction

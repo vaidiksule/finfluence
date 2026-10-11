@@ -25,6 +25,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isReplay, setIsReplay] = useState(false);
   const [replayScenario, setReplayScenario] = useState('oil_spike_2022');
+  const [isRefreshingMarketData, setIsRefreshingMarketData] = useState(false);
+  const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState<string | null>(null);
 
   // Load graph data from API
   const fetchGraphData = useCallback(async () => {
@@ -164,6 +167,40 @@ export default function Home() {
     }
   };
 
+  const handleRefreshMarketData = async () => {
+    setIsRefreshingMarketData(true);
+    try {
+      const response = await fetch('/api/market/refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      if (!response.ok) throw new Error('Market-data refresh failed');
+      await fetchGraphData();
+      await fetchPaths(replayScenario === 'rate_hike_cycle' ? 'indicator.rate_expectations' : 'commodity.crude_oil');
+    } catch (error) {
+      console.error('Market-data refresh failed:', error);
+    } finally {
+      setIsRefreshingMarketData(false);
+    }
+  };
+
+  const handleRunAnalysis = async () => {
+    setIsRunningAnalysis(true);
+    setAnalysisStatus(null);
+    try {
+      const response = await fetch('/api/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ poll_live: true })
+      });
+      const result = (await response.json()) as { articles_fetched?: number; nodes_added?: number; edges_added?: number; error?: string };
+      if (!response.ok) throw new Error(result.error || 'News analysis failed');
+      setAnalysisStatus(`Analysed ${result.articles_fetched ?? 0} headlines; added ${result.edges_added ?? 0} candidate links.`);
+      await fetchGraphData();
+    } catch (error) {
+      setAnalysisStatus(error instanceof Error ? error.message : 'News analysis failed.');
+    } finally {
+      setIsRunningAnalysis(false);
+    }
+  };
+
   // Derived selected objects
   const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) || null : null;
   const selectedEdge = selectedEdgeId ? edges.find((e) => e.id === selectedEdgeId) || null : null;
@@ -182,23 +219,15 @@ export default function Home() {
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-black text-zinc-100 font-sans">
       {/* Top Bar */}
       <TopBar
-        isReplay={isReplay}
-        replayScenario={replayScenario}
-        selectedMarket={selectedMarket}
-        onMarketChange={setSelectedMarket}
-        showWeakEdges={showWeakEdges}
-        onToggleWeakEdges={setShowWeakEdges}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onTriggerReplay={handleTriggerReplay}
-        onRefresh={fetchGraphData}
-        stats={stats}
+        onResetGraph={handleClearSelection}
       />
 
       {/* Main Content Area: 3D Galaxy (68%) + Detail Panel (32%) */}
-      <main className="relative flex flex-1 overflow-hidden">
+      <main className="relative flex flex-1 flex-col overflow-hidden lg:flex-row">
         {/* 3D Force-Directed WebGL Canvas */}
-        <div className="relative h-full flex-1">
+        <div className="relative min-h-0 min-w-0 flex-1">
           <Graph3D
             nodes={nodes}
             edges={edges}
@@ -216,7 +245,7 @@ export default function Home() {
         </div>
 
         {/* Side Detail Panel */}
-        <aside className="h-full w-96 shrink-0 lg:w-[420px]">
+        <aside className="absolute bottom-0 left-0 z-30 h-[min(58vh,620px)] w-full border-t border-white/[0.08] lg:static lg:h-full lg:w-96 lg:border-t-0 lg:w-[420px]">
           <DetailPanel
             selectedNode={selectedNode}
             selectedEdge={selectedEdge}
@@ -237,6 +266,12 @@ export default function Home() {
             }}
             onSelectPath={handleSelectPath}
             onClearSelection={handleClearSelection}
+            activeScenario={replayScenario as 'oil_spike_2022' | 'rate_hike_cycle'}
+            onRefreshMarketData={handleRefreshMarketData}
+            isRefreshingMarketData={isRefreshingMarketData}
+            onRunAnalysis={handleRunAnalysis}
+            isRunningAnalysis={isRunningAnalysis}
+            analysisStatus={analysisStatus}
           />
         </aside>
       </main>

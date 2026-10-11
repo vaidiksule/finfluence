@@ -7,7 +7,7 @@ export default function Legend() {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="absolute bottom-4 left-4 z-10 w-72 rounded-2xl border border-white/10 bg-[#0c0c0e]/80 p-3.5 backdrop-blur-2xl shadow-2xl text-xs font-sans">
+    <div className="absolute bottom-[60%] left-4 z-10 w-72 max-w-[calc(100%-2rem)] rounded-2xl border border-white/10 bg-[#0c0c0e]/80 p-3.5 backdrop-blur-2xl shadow-2xl text-xs font-sans lg:bottom-4">
       <div className="flex items-center justify-between pb-2 border-b border-white/10">
         <div className="flex items-center gap-2 font-medium text-zinc-100">
           <Info className="h-3.5 w-3.5 text-zinc-400" />

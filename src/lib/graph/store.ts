@@ -5,10 +5,13 @@ import marketCacheData from '../../data/market_cache.json';
 import { computeEventStudyWindow, identifyTriggers, PriceSeries } from '../quant/eventStudy';
 import { computeLaggedCorrelation } from '../quant/correlation';
 import { assignEdgeState, computeEdgeConfidence } from '../quant/scoring';
+import { loadPersistedMarketSeries } from '../persistence/local';
 
 export class GraphStore {
   private nodes: Map<string, GraphNode> = new Map();
   private edges: Map<string, GraphEdge> = new Map();
+  private marketCache: Record<string, PriceSeries> = marketCacheData as Record<string, PriceSeries>;
+  private hasHydratedPersistedMarketData = false;
 
   constructor() {
     this.initFromPrior();
@@ -83,6 +86,21 @@ export class GraphStore {
     return Array.from(this.edges.values());
   }
 
+  public setMarketSeries(ticker: string, series: PriceSeries): void {
+    this.marketCache[ticker] = series;
+  }
+
+  /** Load locally persisted provider data once per process, then re-audit the graph. */
+  public async hydratePersistedMarketData(): Promise<void> {
+    if (this.hasHydratedPersistedMarketData) return;
+    const persistedSeries = await loadPersistedMarketSeries();
+    for (const [ticker, series] of Object.entries(persistedSeries)) {
+      this.setMarketSeries(ticker, series);
+    }
+    this.hasHydratedPersistedMarketData = true;
+    if (Object.keys(persistedSeries).length > 0) this.auditAllEdges();
+  }
+
   public getOutgoingEdges(nodeId: string): GraphEdge[] {
     return Array.from(this.edges.values()).filter((e) => {
       const src = typeof e.source === 'object' ? (e.source as any).id : e.source;
@@ -102,8 +120,6 @@ export class GraphStore {
    * Runs in < 30ms for 50 edges.
    */
   public auditAllEdges(): void {
-    const marketCache = marketCacheData as Record<string, PriceSeries>;
-
     for (const edge of this.edges.values()) {
       const srcId = typeof edge.source === 'object' ? (edge.source as any).id : edge.source;
       const tgtId = typeof edge.target === 'object' ? (edge.target as any).id : edge.target;
@@ -115,9 +131,9 @@ export class GraphStore {
       const srcTicker = srcNode?.ticker || (srcNode?.proxy_of ? this.nodes.get(srcNode.proxy_of)?.ticker : null);
       const tgtTicker = tgtNode?.ticker || (tgtNode?.proxy_of ? this.nodes.get(tgtNode.proxy_of)?.ticker : null);
 
-      if (srcTicker && tgtTicker && marketCache[srcTicker] && marketCache[tgtTicker]) {
-        const srcSeries = marketCache[srcTicker];
-        const tgtSeries = marketCache[tgtTicker];
+      if (srcTicker && tgtTicker && this.marketCache[srcTicker] && this.marketCache[tgtTicker]) {
+        const srcSeries = this.marketCache[srcTicker];
+        const tgtSeries = this.marketCache[tgtTicker];
 
         // 1. Identify 2-sigma shock triggers on source
         const triggerIndices = identifyTriggers(srcSeries, 'positive', 2.0);

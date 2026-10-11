@@ -7,7 +7,9 @@ import EdgeDetail from './EdgeDetail';
 import PathList from './PathList';
 import UncertaintyCard from './UncertaintyCard';
 import NewsFeed from './NewsFeed';
-import { Compass, Route, ShieldAlert, Newspaper } from 'lucide-react';
+import MarketBrief from './MarketBrief';
+import Watchlist from './Watchlist';
+import { BookmarkCheck, Compass, Route, ShieldAlert, Newspaper } from 'lucide-react';
 
 interface DetailPanelProps {
   selectedNode: GraphNode | null;
@@ -23,6 +25,12 @@ interface DetailPanelProps {
   onSelectEdge: (id: string) => void;
   onSelectPath: (path: RipplePath) => void;
   onClearSelection: () => void;
+  activeScenario?: 'oil_spike_2022' | 'rate_hike_cycle';
+  onRefreshMarketData?: () => void;
+  isRefreshingMarketData?: boolean;
+  onRunAnalysis?: () => void;
+  isRunningAnalysis?: boolean;
+  analysisStatus?: string | null;
 }
 
 export default function DetailPanel({
@@ -38,9 +46,15 @@ export default function DetailPanel({
   onSelectNode,
   onSelectEdge,
   onSelectPath,
-  onClearSelection
+  onClearSelection,
+  activeScenario = 'oil_spike_2022',
+  onRefreshMarketData,
+  isRefreshingMarketData = false,
+  onRunAnalysis,
+  isRunningAnalysis = false,
+  analysisStatus
 }: DetailPanelProps) {
-  const [activeTab, setActiveTab] = useState<'inspect' | 'paths' | 'uncertainty' | 'news'>('inspect');
+  const [activeTab, setActiveTab] = useState<'inspect' | 'paths' | 'uncertainty' | 'news' | 'watchlist'>('inspect');
 
   // Auto-switch to inspect tab if a node or edge is selected
   React.useEffect(() => {
@@ -97,6 +111,13 @@ export default function DetailPanel({
           <Newspaper className="h-3.5 w-3.5" />
           <span>News</span>
         </button>
+        <button
+          onClick={() => setActiveTab('watchlist')}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 font-medium transition-all ${activeTab === 'watchlist' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+        >
+          <BookmarkCheck className="h-3.5 w-3.5" />
+          <span>Watch</span>
+        </button>
       </div>
 
       {/* Tab Panels */}
@@ -108,6 +129,8 @@ export default function DetailPanel({
                 node={selectedNode}
                 incomingEdges={incomingEdges}
                 outgoingEdges={outgoingEdges}
+                articles={articles}
+                nodes={nodes}
                 onSelectNode={onSelectNode}
                 onSelectEdge={onSelectEdge}
                 onClose={onClearSelection}
@@ -115,13 +138,15 @@ export default function DetailPanel({
             ) : selectedEdge ? (
               <EdgeDetail edge={selectedEdge} onClose={onClearSelection} />
             ) : (
-              <div className="flex h-full flex-col items-center justify-center p-8 text-center text-zinc-500">
-                <Compass className="h-8 w-8 mb-3 text-zinc-600 stroke-[1.5]" />
-                <h3 className="text-sm font-medium text-zinc-300">Select an Entity or Edge</h3>
-                <p className="mt-1.5 text-xs text-zinc-500 max-w-[240px] leading-relaxed">
-                  Click any sphere or connection line in the 3D graph to inspect backtested empirical evidence.
-                </p>
-              </div>
+              <MarketBrief
+                scenario={activeScenario}
+                onExplorePaths={() => setActiveTab('paths')}
+                onRefreshMarketData={onRefreshMarketData}
+                isRefreshingMarketData={isRefreshingMarketData}
+                onRunAnalysis={onRunAnalysis}
+                isRunningAnalysis={isRunningAnalysis}
+                analysisStatus={analysisStatus}
+              />
             )}
           </div>
         )}
@@ -152,6 +177,10 @@ export default function DetailPanel({
               }
             }}
           />
+        )}
+
+        {activeTab === 'watchlist' && (
+          <Watchlist nodes={nodes} edges={edges} onSelectNode={onSelectNode} />
         )}
       </div>
     </div>
