@@ -16,75 +16,73 @@ export default function EdgeDetail({ edge, onClose }: EdgeDetailProps) {
   const es = edge.event_study;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto p-4 text-xs">
+    <div className="flex h-full flex-col overflow-y-auto p-4 text-xs font-sans">
       {/* Header */}
-      <div className="border-b border-slate-800 pb-3">
+      <div className="border-b border-white/10 pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <span
-              className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
+              className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10.5px] font-medium tracking-wide border ${
                 edge.state === 'validated'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  ? 'bg-white/10 text-white border-white/20'
                   : edge.state === 'contradicted'
-                  ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                  : edge.state === 'stated'
-                  ? 'bg-sky-500/10 text-sky-400 border border-sky-500/30'
-                  : 'bg-slate-500/10 text-slate-400 border border-slate-700'
+                  ? 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                  : 'bg-zinc-900 text-zinc-400 border-zinc-800'
               }`}
             >
-              {edge.state === 'validated' && <ShieldCheck className="h-3 w-3" />}
-              {edge.state === 'contradicted' && <ShieldAlert className="h-3 w-3" />}
-              {edge.state === 'inferred' && <AlertTriangle className="h-3 w-3" />}
-              {edge.state}
+              {edge.state === 'validated' && <ShieldCheck className="h-3 w-3 text-white" />}
+              {edge.state === 'contradicted' && <ShieldAlert className="h-3 w-3 text-zinc-400" />}
+              {edge.state === 'inferred' && <AlertTriangle className="h-3 w-3 text-zinc-500" />}
+              <span className="capitalize">{edge.state}</span>
             </span>
-            <span className="font-mono text-xs text-slate-400">
-              Conf: {(edge.confidence * 100).toFixed(0)}%
+            <span className="font-mono text-xs text-zinc-400">
+              {(edge.confidence * 100).toFixed(0)}% Conf
             </span>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-800 hover:text-white transition-colors"
           >
             ✕
           </button>
         </div>
 
         {/* Link Title */}
-        <div className="mt-2 text-sm font-bold text-white">
-          <span className="text-cyan-400">{srcId}</span>
-          <span className="mx-2 text-slate-500 font-normal">[{edge.relation}]</span>
-          <span className="text-emerald-400">{tgtId}</span>
+        <div className="mt-3 text-sm font-semibold text-white tracking-tight">
+          <span className="text-zinc-100">{srcId}</span>
+          <span className="mx-2 text-zinc-500 font-normal text-xs uppercase tracking-wider">→ {edge.relation} →</span>
+          <span className="text-zinc-300">{tgtId}</span>
         </div>
 
         {edge.mechanism_tag && (
-          <span className="mt-1 inline-block rounded bg-slate-900 px-2 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-800">
+          <span className="mt-1.5 inline-block rounded-md bg-zinc-900 px-2 py-0.5 text-[10px] font-mono text-zinc-400 border border-white/5">
             Mechanism: {edge.mechanism_tag}
           </span>
         )}
       </div>
 
-      {/* Radical Honesty Alert Banner if Contradicted */}
+      {/* Radical Honesty Notice if Contradicted */}
       {edge.state === 'contradicted' && (
-        <div className="mt-3 rounded-lg border border-rose-500/30 bg-rose-950/40 p-3 text-rose-300">
-          <div className="flex items-center gap-1.5 font-bold text-rose-400">
-            <ShieldAlert className="h-4 w-4" />
+        <div className="mt-3.5 rounded-xl border border-white/15 bg-zinc-900/80 p-3 text-zinc-300">
+          <div className="flex items-center gap-2 font-medium text-white">
+            <ShieldAlert className="h-4 w-4 text-zinc-300" />
             <span>Empirical Data Refutes Hypothesis</span>
           </div>
-          <p className="mt-1 text-[11px] leading-relaxed text-rose-200/90">
+          <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-400">
             {edge.state_reason ||
-              'Historical price series show a hit rate below 40% or statistically significant returns opposite to the proposed relationship.'}
+              'Historical price series show a hit rate below 40% or returns opposite to the LLM proposition during historical shock windows.'}
           </p>
         </div>
       )}
 
       {/* Rationale */}
-      <div className="mt-3 rounded-lg bg-slate-900/60 p-2.5 border border-slate-800/80">
-        <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">
+      <div className="mt-3.5 rounded-xl bg-zinc-900/60 p-3 border border-white/5">
+        <span className="text-[10px] font-semibold uppercase text-zinc-500 tracking-wider">
           Economic Rationale
         </span>
-        <p className="mt-1 text-slate-200 text-[11px] leading-relaxed">{edge.rationale}</p>
+        <p className="mt-1 text-zinc-300 text-[11px] leading-relaxed">{edge.rationale}</p>
         {edge.cited_sentence && (
-          <div className="mt-2 text-[10px] text-cyan-300 italic border-l-2 border-cyan-500 pl-2">
+          <div className="mt-2 text-[10px] text-zinc-400 italic border-l border-zinc-600 pl-2">
             &ldquo;{edge.cited_sentence}&rdquo;
           </div>
         )}
@@ -93,65 +91,55 @@ export default function EdgeDetail({ edge, onClose }: EdgeDetailProps) {
       {/* Event Study Backtesting Table */}
       <div className="mt-4">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">
+          <span className="text-[10px] font-semibold uppercase text-zinc-500 tracking-wider">
             Event Study Backtest (2σ Shock Windows)
           </span>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-zinc-500 font-mono">
             {es?.trigger_count ? `${es.trigger_count} historical triggers` : ''}
           </span>
         </div>
 
         {es?.windows ? (
-          <div className="mt-2 overflow-x-auto rounded-lg border border-slate-800">
+          <div className="mt-2 overflow-x-auto rounded-xl border border-white/10 bg-zinc-950/40">
             <table className="w-full text-left font-mono text-[11px]">
-              <thead className="bg-slate-900 text-slate-400 text-[10px]">
+              <thead className="bg-zinc-900/80 text-zinc-400 text-[10px] border-b border-white/5">
                 <tr>
-                  <th className="py-1.5 px-2">Window</th>
-                  <th className="py-1.5 px-2">n</th>
-                  <th className="py-1.5 px-2">Hit Rate</th>
-                  <th className="py-1.5 px-2">Mean CAR</th>
-                  <th className="py-1.5 px-2">p-value</th>
+                  <th className="py-2 px-2.5 font-medium">Window</th>
+                  <th className="py-2 px-2 font-medium">n</th>
+                  <th className="py-2 px-2 font-medium">Hit Rate</th>
+                  <th className="py-2 px-2 font-medium">Mean CAR</th>
+                  <th className="py-2 px-2 font-medium">p-value</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-200">
+              <tbody className="divide-y divide-white/5 text-zinc-300">
                 {(['1', '5', '10'] as const).map((wKey) => {
                   const w = es.windows[wKey];
                   if (!w) return null;
                   return (
-                    <tr key={wKey} className="hover:bg-slate-900/40">
-                      <td className="py-1.5 px-2 text-cyan-400 font-semibold">{wKey} day</td>
-                      <td className="py-1.5 px-2">{w.n}</td>
-                      <td className="py-1.5 px-2">
+                    <tr key={wKey} className="hover:bg-zinc-900/50 transition-colors">
+                      <td className="py-2 px-2.5 text-zinc-200 font-semibold">{wKey} day</td>
+                      <td className="py-2 px-2 text-zinc-400">{w.n}</td>
+                      <td className="py-2 px-2">
                         <span
                           className={
                             w.hit_rate >= 0.6
-                              ? 'text-emerald-400 font-semibold'
+                              ? 'text-white font-semibold'
                               : w.hit_rate <= 0.4
-                              ? 'text-rose-400 font-semibold'
-                              : 'text-slate-300'
+                              ? 'text-zinc-500 font-medium'
+                              : 'text-zinc-400'
                           }
                         >
                           {(w.hit_rate * 100).toFixed(0)}%
                         </span>
                       </td>
-                      <td className="py-1.5 px-2">
-                        <span className={w.mean_car >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                      <td className="py-2 px-2">
+                        <span className="text-zinc-200">
                           {w.mean_car >= 0 ? '+' : ''}
                           {(w.mean_car * 100).toFixed(1)}%
                         </span>
                       </td>
-                      <td className="py-1.5 px-2">
-                        <span
-                          className={
-                            w.significance === 'significant'
-                              ? 'text-emerald-400 font-bold'
-                              : w.significance === 'suggestive'
-                              ? 'text-cyan-400'
-                              : 'text-slate-500'
-                          }
-                        >
-                          {w.p_value}
-                        </span>
+                      <td className="py-2 px-2 text-zinc-400">
+                        p={w.p_value.toFixed(2)}
                       </td>
                     </tr>
                   );
@@ -160,38 +148,55 @@ export default function EdgeDetail({ edge, onClose }: EdgeDetailProps) {
             </table>
           </div>
         ) : (
-          <div className="mt-2 rounded-lg bg-slate-900/40 p-3 text-slate-500 text-[11px] italic border border-slate-800">
-            No empirical price series backtest available for this pair (unmeasurable node or proxy).
+          <div className="mt-2 rounded-xl bg-zinc-900/40 p-3 text-center text-zinc-500 text-[11px] border border-white/5">
+            No 2σ historical backtest triggers available for this pair.
           </div>
         )}
       </div>
 
-      {/* Lagged Correlation & Components */}
-      <div className="mt-4 grid grid-cols-2 gap-2 text-[11px]">
-        <div className="rounded-lg bg-slate-900/60 p-2 border border-slate-800">
-          <span className="text-[10px] text-slate-400 uppercase font-semibold">Best Lag</span>
-          <div className="mt-1 flex items-center gap-1 font-mono text-cyan-400 text-sm">
-            <Clock className="h-3.5 w-3.5" />
-            <span>{edge.lag_best !== undefined ? `${edge.lag_best} days` : '0 days'}</span>
-          </div>
+      {/* Lag & Correlation */}
+      {(edge.lag_best !== undefined || edge.corr_best !== undefined) && (
+        <div className="mt-3.5 flex gap-2">
+          {edge.lag_best !== undefined && (
+            <div className="flex-1 rounded-xl bg-zinc-900/60 p-2.5 border border-white/5">
+              <span className="text-[10px] text-zinc-500 block uppercase tracking-wider">Optimal Lag</span>
+              <span className="text-xs font-mono font-semibold text-zinc-200">
+                T + {edge.lag_best} {edge.lag_best === 1 ? 'day' : 'days'}
+              </span>
+            </div>
+          )}
+          {edge.corr_best !== undefined && (
+            <div className="flex-1 rounded-xl bg-zinc-900/60 p-2.5 border border-white/5">
+              <span className="text-[10px] text-zinc-500 block uppercase tracking-wider">Lead-Lag Corr</span>
+              <span className="text-xs font-mono font-semibold text-zinc-200">
+                {edge.corr_best > 0 ? '+' : ''}
+                {edge.corr_best.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
-        <div className="rounded-lg bg-slate-900/60 p-2 border border-slate-800">
-          <span className="text-[10px] text-slate-400 uppercase font-semibold">Correlation (r)</span>
-          <div className="mt-1 flex items-center gap-1 font-mono text-sm text-slate-200">
-            {edge.corr_best !== undefined && edge.corr_best >= 0 ? (
-              <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
-            ) : (
-              <TrendingDown className="h-3.5 w-3.5 text-rose-400" />
-            )}
-            <span>{edge.corr_best !== undefined ? edge.corr_best.toFixed(3) : '0.000'}</span>
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* Audit Transparency Disclaimer */}
-      <div className="mt-auto pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-        🔒 Historically associated, not proven causal. Evaluated via 2σ trigger backtest.
-      </div>
+      {/* Evidence Sources */}
+      {edge.evidence && edge.evidence.length > 0 && (
+        <div className="mt-4">
+          <span className="text-[10px] font-semibold uppercase text-zinc-500 tracking-wider">
+            Ingested Evidence ({edge.evidence.length})
+          </span>
+          <div className="mt-2 space-y-1.5">
+            {edge.evidence.map((ev, i) => (
+              <div key={i} className="rounded-lg bg-zinc-900/40 p-2 border border-white/5">
+                <div className="font-medium text-zinc-200 text-[11px]">{ev.title}</div>
+                {ev.quote_span && (
+                  <div className="mt-1 text-[10px] text-zinc-400 italic">
+                    &ldquo;{ev.quote_span}&rdquo;
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

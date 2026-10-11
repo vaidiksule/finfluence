@@ -9,10 +9,10 @@ import { GraphEdge, GraphNode, NodeType, EdgeState } from '@/lib/types';
 const ForceGraph3D = dynamic(() => import('react-force-graph-3d'), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-slate-950 text-slate-400">
+    <div className="flex h-full w-full items-center justify-center bg-black text-zinc-500 font-sans">
       <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
-        <span className="text-sm font-medium tracking-wide">Initializing 3D Shockwave Graph...</span>
+        <div className="h-6 w-6 animate-spin rounded-full border border-zinc-400 border-t-transparent" />
+        <span className="text-xs font-medium tracking-wide text-zinc-400">Loading 3D Market Graph...</span>
       </div>
     </div>
   )
@@ -31,23 +31,25 @@ interface Graph3DProps {
   showWeakEdges?: boolean;
 }
 
+// Apple-inspired Grayscale / Monochrome Metallic Palette for Nodes
 const NODE_COLORS: Record<NodeType, string> = {
-  event: '#f59e0b', // Amber sun
-  commodity: '#ea580c', // Bright orange
-  indicator: '#06b6d4', // Cyan
-  sector: '#8b5cf6', // Violet
-  company: '#10b981', // Emerald green
-  index: '#3b82f6', // Blue
-  currency: '#eab308', // Yellow
-  instrument: '#64748b', // Slate
-  institution: '#ec4899' // Pink
+  event: '#ffffff',       // Pure white core (epicenter)
+  commodity: '#e4e4e7',   // Bright zinc/silver
+  indicator: '#d4d4d8',   // Light zinc
+  sector: '#a1a1aa',      // Neutral gray
+  company: '#f4f4f5',     // Pearl white
+  index: '#ffffff',       // White
+  currency: '#e4e4e7',    // Silver
+  instrument: '#71717a',  // Mid slate gray
+  institution: '#a1a1aa'  // Subtle gray
 };
 
+// Edge Grayscale hierarchy
 const STATE_COLORS: Record<EdgeState, string> = {
-  validated: '#10b981', // Glowing Green
-  contradicted: '#ef4444', // Glowing Red
-  inferred: '#64748b', // Faint Slate
-  stated: '#38bdf8' // Sky blue
+  validated: '#ffffff',    // Solid luminous white
+  contradicted: '#71717a', // Muted metallic gray with dashed or low-dim
+  inferred: '#3f3f46',     // Subtle dark zinc
+  stated: '#a1a1aa'        // Clean silver-gray
 };
 
 export default function Graph3D({
@@ -87,7 +89,7 @@ export default function Graph3D({
     };
   }, [nodes, filteredEdges]);
 
-  // Camera flight when a node is selected
+  // Camera flight smoothly when a node is selected
   useEffect(() => {
     if (selectedNodeId && fgRef.current) {
       const nodeObj = graphData.nodes.find((n) => n.id === selectedNodeId);
@@ -107,18 +109,21 @@ export default function Graph3D({
     }
   }, [selectedNodeId, graphData]);
 
-  // Helper to create text billboard sprite
-  const createTextSprite = (text: string, color: string) => {
+  // Helper to create Apple-style clean text billboard sprite
+  const createTextSprite = (text: string, color: string, isSelected: boolean) => {
     const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 64;
+    canvas.width = 300;
+    canvas.height = 70;
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.clearRect(0, 0, 256, 64);
-      ctx.font = 'bold 22px Inter, sans-serif';
+      ctx.clearRect(0, 0, 300, 70);
+      ctx.font = isSelected
+        ? '600 24px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif'
+        : '500 21px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
       ctx.fillStyle = color;
       ctx.textAlign = 'center';
-      ctx.fillText(text, 128, 40);
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 150, 35);
     }
     const texture = new THREE.CanvasTexture(canvas);
     const spriteMaterial = new THREE.SpriteMaterial({
@@ -127,7 +132,7 @@ export default function Graph3D({
       depthWrite: false
     });
     const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.scale.set(30, 8, 1);
+    sprite.scale.set(32, 7.5, 1);
     sprite.position.set(0, 10, 0);
     return sprite;
   };
@@ -136,27 +141,41 @@ export default function Graph3D({
   const nodeThreeObject = (node: any) => {
     const isSelected = node.id === selectedNodeId;
     const isPathHighlighted = highlightedPathNodes.includes(node.id);
-    const baseColor = NODE_COLORS[node.type as NodeType] || '#94a3b8';
+    const baseColor = NODE_COLORS[node.type as NodeType] || '#a1a1aa';
 
     const group = new THREE.Group();
 
     // Node Sphere geometry
-    const radius = node.type === 'event' ? 8 : isSelected || isPathHighlighted ? 7 : 5;
-    const geometry = new THREE.SphereGeometry(radius, 24, 24);
+    const radius = node.type === 'event' ? 7.5 : isSelected || isPathHighlighted ? 6.5 : 4.5;
+    const geometry = new THREE.SphereGeometry(radius, 32, 32);
 
-    const material = new THREE.MeshPhongMaterial({
-      color: new THREE.Color(baseColor),
-      emissive: new THREE.Color(isSelected || isPathHighlighted ? baseColor : '#000000'),
-      emissiveIntensity: isSelected ? 0.6 : isPathHighlighted ? 0.4 : 0.1,
-      shininess: 80
+    const material = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(isSelected ? '#ffffff' : baseColor),
+      emissive: new THREE.Color(isSelected ? '#ffffff' : isPathHighlighted ? '#d4d4d8' : '#18181b'),
+      emissiveIntensity: isSelected ? 0.8 : isPathHighlighted ? 0.5 : 0.15,
+      roughness: 0.25,
+      metalness: 0.85
     });
 
     const sphere = new THREE.Mesh(geometry, material);
     group.add(sphere);
 
+    // Subtle outer halo for selected node
+    if (isSelected) {
+      const haloGeo = new THREE.RingGeometry(radius + 2, radius + 3, 32);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.6
+      });
+      const halo = new THREE.Mesh(haloGeo, haloMat);
+      group.add(halo);
+    }
+
     // Text label sprite
-    const spriteColor = isSelected ? '#38bdf8' : isPathHighlighted ? '#4ade80' : '#e2e8f0';
-    const labelSprite = createTextSprite(node.label || node.id, spriteColor);
+    const spriteColor = isSelected ? '#ffffff' : isPathHighlighted ? '#f4f4f5' : '#a1a1aa';
+    const labelSprite = createTextSprite(node.label || node.id, spriteColor, isSelected);
     group.add(labelSprite);
 
     return group;
@@ -165,39 +184,41 @@ export default function Graph3D({
   if (!mounted) return null;
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-slate-950">
+    <div className="relative h-full w-full overflow-hidden bg-black">
       <ForceGraph3D
         ref={fgRef}
         graphData={graphData}
-        backgroundColor="#020617"
+        backgroundColor="#050507"
         nodeThreeObject={nodeThreeObject}
         nodeLabel={(n: any) =>
-          `<div class="rounded bg-slate-900/90 px-2.5 py-1 text-xs text-white shadow-lg border border-slate-700">
-            <span class="font-semibold text-cyan-400">${n.label || n.id}</span>
-            <div class="text-[10px] text-slate-300 capitalize">${n.type} ${n.ticker ? `(${n.ticker})` : ''}</div>
+          `<div class="rounded-lg bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-100 shadow-2xl border border-white/10 backdrop-blur-xl font-sans">
+            <span class="font-semibold text-white">${n.label || n.id}</span>
+            <div class="text-[10px] text-zinc-400 capitalize">${n.type} ${n.ticker ? `(${n.ticker})` : ''}</div>
           </div>`
         }
         onNodeClick={(node: any) => onNodeClick && onNodeClick(node as GraphNode)}
         onLinkClick={(link: any) => onEdgeClick && onEdgeClick(link as GraphEdge)}
         onBackgroundClick={() => onBackgroundClick && onBackgroundClick()}
-        // Edge styling
+        // Edge styling (monochrome & clean)
         linkColor={(link: any) => {
-          if (highlightedPathEdgeIds.includes(link.id)) return '#38bdf8'; // Sky blue for active path
-          if (link.id === selectedEdgeId) return '#facc15'; // Yellow for selected edge
-          return STATE_COLORS[link.state as EdgeState] || '#64748b';
+          if (highlightedPathEdgeIds.includes(link.id)) return '#ffffff';
+          if (link.id === selectedEdgeId) return '#ffffff';
+          if (link.state === 'contradicted') return '#52525b';
+          if (link.state === 'validated') return '#e4e4e7';
+          return '#3f3f46';
         }}
         linkWidth={(link: any) => {
-          if (highlightedPathEdgeIds.includes(link.id)) return 3.5;
-          if (link.id === selectedEdgeId) return 3.0;
-          if (link.state === 'validated') return Math.max(1.5, link.confidence * 3);
-          if (link.state === 'contradicted') return 2.2;
-          return 0.8;
+          if (highlightedPathEdgeIds.includes(link.id)) return 2.6;
+          if (link.id === selectedEdgeId) return 2.5;
+          if (link.state === 'validated') return Math.max(1.2, link.confidence * 2.2);
+          if (link.state === 'contradicted') return 1.4;
+          return 0.7;
         }}
-        // Directional Ripple Particles
+        // Directional Grayscale Particles
         linkDirectionalParticles={(link: any) => {
-          if (highlightedPathEdgeIds.includes(link.id)) return 6;
-          if (link.state === 'validated') return Math.max(2, Math.round(link.confidence * 4));
-          if (link.state === 'contradicted') return 3;
+          if (highlightedPathEdgeIds.includes(link.id)) return 5;
+          if (link.state === 'validated') return Math.max(2, Math.round(link.confidence * 3));
+          if (link.state === 'contradicted') return 2;
           return 1;
         }}
         linkDirectionalParticleSpeed={(link: any) => {
@@ -205,16 +226,16 @@ export default function Graph3D({
           return 0.006;
         }}
         linkDirectionalParticleWidth={(link: any) => {
-          if (highlightedPathEdgeIds.includes(link.id)) return 3.0;
-          if (link.state === 'validated') return 2.2;
-          if (link.state === 'contradicted') return 2.0;
+          if (highlightedPathEdgeIds.includes(link.id)) return 2.5;
+          if (link.state === 'validated') return 1.8;
+          if (link.state === 'contradicted') return 1.4;
           return 1.0;
         }}
         linkDirectionalParticleColor={(link: any) => {
-          if (highlightedPathEdgeIds.includes(link.id)) return '#38bdf8';
-          if (link.state === 'validated') return '#4ade80';
-          if (link.state === 'contradicted') return '#f87171';
-          return '#94a3b8';
+          if (highlightedPathEdgeIds.includes(link.id)) return '#ffffff';
+          if (link.state === 'validated') return '#ffffff';
+          if (link.state === 'contradicted') return '#71717a';
+          return '#52525b';
         }}
         enableNodeDrag={true}
         showNavInfo={false}

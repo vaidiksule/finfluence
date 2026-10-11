@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { MarketType } from '@/lib/types';
-import { Search, Radio, SlidersHorizontal, RefreshCw, Zap } from 'lucide-react';
+import { Search, RefreshCw, Play, Sliders } from 'lucide-react';
 
 interface TopBarProps {
   isReplay: boolean;
@@ -39,49 +39,49 @@ export default function TopBar({
   stats
 }: TopBarProps) {
   return (
-    <header className="flex h-16 w-full items-center justify-between border-b border-slate-800/80 bg-slate-950/90 px-4 backdrop-blur-md">
+    <header className="flex h-14 w-full items-center justify-between border-b border-white/[0.08] bg-[#0c0c0e]/85 px-4 backdrop-blur-2xl z-20">
       {/* Brand & Logo */}
       <div className="flex items-center gap-3">
-        <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-700 p-1 shadow-md shadow-cyan-900/30">
+        <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-b from-white/10 to-white/5 p-1 border border-white/10 shadow-sm">
           <Image
             src="/logo-no-bg.png"
             alt="Finfluence Logo"
-            width={36}
-            height={36}
-            className="object-contain"
+            width={26}
+            height={26}
+            className="object-contain filter grayscale contrast-125"
           />
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold tracking-tight text-white">Finfluence</span>
+            <span className="text-[13px] font-semibold tracking-tight text-white font-sans">Finfluence</span>
             {isReplay ? (
-              <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-400 border border-amber-500/20">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                REPLAY: historical data
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/90 border border-white/15">
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                Historical Replay
               </span>
             ) : (
-              <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-400 border border-emerald-500/20">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                LIVE
+              <span className="flex items-center gap-1.5 rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/70 border border-white/10">
+                <span className="h-1.5 w-1.5 rounded-full bg-white/80 animate-pulse" />
+                Live
               </span>
             )}
           </div>
-          <p className="text-[11px] text-slate-400">Autonomous Market Impact Graph</p>
+          <p className="text-[10px] text-zinc-400">Autonomous Market Impact Graph</p>
         </div>
       </div>
 
-      {/* Middle Controls: Market Selector & Search */}
+      {/* Center Controls: Segmented Market Control & Search */}
       <div className="flex items-center gap-3">
-        {/* Market Filter */}
-        <div className="flex rounded-lg bg-slate-900 p-0.5 border border-slate-800 text-xs">
+        {/* Apple Segmented Control */}
+        <div className="flex rounded-lg bg-zinc-900/90 p-0.5 border border-white/10 text-[11px] shadow-inner">
           {(['India', 'Global', 'US', 'All'] as const).map((m) => (
             <button
               key={m}
               onClick={() => onMarketChange(m)}
-              className={`rounded-md px-3 py-1 font-medium transition-colors ${
+              className={`rounded-md px-3 py-1 font-medium transition-all ${
                 selectedMarket === m
-                  ? 'bg-cyan-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-zinc-200 text-black shadow-sm font-semibold'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               {m}
@@ -89,72 +89,73 @@ export default function TopBar({
           ))}
         </div>
 
-        {/* Search */}
-        <div className="relative w-48">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+        {/* Minimal Search Bar */}
+        <div className="relative w-52">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
-            placeholder="Search entities / tickers..."
+            placeholder="Search entities, tickers..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full rounded-lg border border-slate-800 bg-slate-900/90 py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+            className="w-full rounded-lg border border-white/10 bg-zinc-900/80 py-1 pl-8 pr-3 text-xs text-zinc-200 placeholder-zinc-500 focus:border-white/30 focus:outline-none focus:bg-zinc-900 transition-all"
           />
         </div>
 
-        {/* Toggle Weak Edges */}
-        <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-          <input
-            type="checkbox"
-            checked={showWeakEdges}
-            onChange={(e) => onToggleWeakEdges(e.target.checked)}
-            className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-cyan-600 focus:ring-0"
-          />
-          <span>Show Inferred</span>
-        </label>
+        {/* Inferred Toggle */}
+        <button
+          onClick={() => onToggleWeakEdges(!showWeakEdges)}
+          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs border transition-all ${
+            showWeakEdges
+              ? 'border-white/20 bg-zinc-800 text-zinc-100'
+              : 'border-white/5 bg-transparent text-zinc-500 hover:text-zinc-300'
+          }`}
+          title="Toggle low sample / inferred edges"
+        >
+          <Sliders className="h-3 w-3" />
+          <span>Inferred</span>
+        </button>
       </div>
 
       {/* Right Controls: Stats, Scenario Buttons & Refresh */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {stats && (
-          <div className="hidden lg:flex items-center gap-2 text-[11px] font-mono border-r border-slate-800 pr-3">
-            <span className="flex items-center gap-1 text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <div className="hidden xl:flex items-center gap-2.5 text-[11px] font-mono border-r border-white/10 pr-3 text-zinc-400">
+            <span className="flex items-center gap-1.5 text-zinc-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
               {stats.validated} Validated
             </span>
-            <span className="flex items-center gap-1 text-rose-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+            <span className="flex items-center gap-1.5 text-zinc-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" />
               {stats.contradicted} Contradicted
             </span>
-            <span className="flex items-center gap-1 text-slate-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-500" />
+            <span className="flex items-center gap-1.5 text-zinc-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-zinc-700" />
               {stats.inferred} Inferred
             </span>
           </div>
         )}
 
-        {/* Replay Scenario Picker */}
-        <div className="flex items-center gap-1">
+        {/* Replay Scenarios */}
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => onTriggerReplay('oil_spike_2022')}
-            className="flex items-center gap-1 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all"
-            title="Replay Brent Crude $120 Spike (March 2022)"
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-zinc-300 border border-white/10 hover:bg-zinc-800 hover:text-white transition-all shadow-sm"
           >
-            <Zap className="h-3 w-3" />
-            Oil Spike Replay
+            <Play className="h-2.5 w-2.5 text-zinc-400 fill-zinc-400" />
+            Oil Spike
           </button>
           <button
             onClick={() => onTriggerReplay('rate_hike_cycle')}
-            className="flex items-center gap-1 rounded-md bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-400 border border-purple-500/30 hover:bg-purple-500/20 transition-all"
-            title="Replay RBI / Fed Policy Rate Decisions"
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-zinc-300 border border-white/10 hover:bg-zinc-800 hover:text-white transition-all shadow-sm"
           >
-            <Zap className="h-3 w-3" />
-            Rate Hike Replay
+            <Play className="h-2.5 w-2.5 text-zinc-400 fill-zinc-400" />
+            Rate Hike
           </button>
         </div>
 
         <button
           onClick={onRefresh}
-          className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:text-slate-100 transition-colors"
+          className="rounded-lg border border-white/10 bg-zinc-900 p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all shadow-sm"
           title="Recalculate in-memory quant backtest"
         >
           <RefreshCw className="h-3.5 w-3.5" />
