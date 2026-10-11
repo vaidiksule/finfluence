@@ -9,6 +9,7 @@ export async function GET(request: Request) {
     const includeStates = searchParams.get('include_states')?.split(',') || null;
 
     const store = getGraphStore();
+    await store.hydratePersistedGraph();
     await store.hydratePersistedMarketData();
     let nodes = store.getAllNodes();
     let edges = store.getAllEdges();
@@ -40,6 +41,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       nodes,
       edges,
+      articles: store.getArticles(),
       stats: {
         total_nodes: nodes.length,
         total_edges: edges.length,

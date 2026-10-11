@@ -2,6 +2,8 @@ import { getGraphStore } from './graph/store';
 import { extractEventAndEdges } from './llm/openai';
 import { GraphEdge, GraphNode, IngestedArticle, SSEMessage } from './types';
 import { appendArticleRecord } from './persistence/local';
+import { upsertGraphSnapshot } from './persistence/supabase';
+import { createHash } from 'node:crypto';
 
 // Global Event Broadcaster for Server-Sent Events (SSE)
 type SSEListener = (msg: SSEMessage) => void;
@@ -33,13 +35,19 @@ export function broadcastSSE(type: SSEMessage['type'], data: any): void {
  * -> Audits edges against in-memory price returns (<10ms)
  * -> Broadcasts live SSE updates to 3D frontend
  */
-export async function processArticlePipeline(article: IngestedArticle): Promise<{
+export async function processArticlePipeline(article: IngestedArticle, jobId?: string): Promise<{
   event_detected: boolean;
   nodes_added: number;
   edges_added: number;
 }> {
+  article.retrieved_at ||= new Date().toISOString();
+  article.content_hash ||= createHash('sha256').update(`${article.title}\n${article.summary || ''}`).digest('hex');
+  article.extraction_model ||= process.env.LLM_MODEL || 'deterministic-fallback';
+  article.extraction_version ||= 'extraction-v1';
+  broadcastSSE('status', { job_id: jobId, stage: 'received', article_id: article.id });
   await appendArticleRecord(article);
   broadcastSSE('article_ingested', article);
+  broadcastSSE('status', { job_id: jobId, stage: 'extracting', article_id: article.id });
 
   // 1. Single-Pass LLM Extraction
   const extraction = await extractEventAndEdges(article.title, article.summary || '');
@@ -49,6 +57,7 @@ export async function processArticlePipeline(article: IngestedArticle): Promise<
   let edgesAddedCount = 0;
 
   if (extraction.is_event) {
+    broadcastSSE('status', { job_id: jobId, stage: 'mapping_entities', article_id: article.id });
     const eventNodeId = `event.${Date.now()}`;
     const eventNode: GraphNode = {
       id: eventNodeId,
@@ -74,7 +83,9 @@ export async function processArticlePipeline(article: IngestedArticle): Promise<
           market: 'India',
           ticker: ent.ticker || null,
           measurable: !!ent.ticker,
-          first_seen: new Date().toISOString()
+          first_seen: new Date().toISOString(),
+          unresolved: true,
+          review_status: 'pending'
         };
         store.addNode(newNode);
         nodesAddedCount++;
@@ -98,7 +109,7 @@ export async function processArticlePipeline(article: IngestedArticle): Promise<
         target: tgtId,
         relation: prop.relation,
         direction: prop.direction,
-        state: prop.cited_sentence ? 'stated' : 'inferred',
+        state: 'proposed',
         confidence: 0.50,
         rationale: prop.rationale,
         mechanism_tag: prop.mechanism_tag,
@@ -117,6 +128,16 @@ export async function processArticlePipeline(article: IngestedArticle): Promise<
         components_used: ['llm_proposal'],
         created_by: 'llm',
         cited_sentence: prop.cited_sentence,
+        review_status: 'proposed',
+        provenance: [{
+          article_id: article.id,
+          url: article.url,
+          quote_span: prop.cited_sentence,
+          retrieved_at: article.retrieved_at,
+          content_hash: article.content_hash,
+          extraction_model: article.extraction_model,
+          extraction_version: article.extraction_version
+        }],
         last_validated: new Date().toISOString()
       };
 
@@ -125,7 +146,24 @@ export async function processArticlePipeline(article: IngestedArticle): Promise<
       broadcastSSE('edge_added', newEdge);
     }
 
-    // 4. In-Memory Quant Audit across all edges (< 20ms)
+    article.event = {
+      id: eventNodeId,
+      is_event: true,
+      event_type: extraction.event_type,
+      summary: extraction.summary,
+      direction: extraction.direction,
+      magnitude_text: extraction.magnitude_text,
+      magnitude_value: extraction.magnitude_value,
+      unit: extraction.unit,
+      occurred_at: article.published_at,
+      confidence_in_extraction: 0.7
+    };
+    article.extracted_entities = extraction.entities.map((entity) => entity.canonical_id);
+    article.proposed_edges_count = edgesAddedCount;
+    await appendArticleRecord(article);
+
+    // Quant audit across all edges; proposed links remain provisional until evidence is sufficient.
+    broadcastSSE('status', { job_id: jobId, stage: 'auditing_evidence', article_id: article.id });
     store.auditAllEdges();
 
     // Broadcast updated edges
@@ -133,10 +171,14 @@ export async function processArticlePipeline(article: IngestedArticle): Promise<
       broadcastSSE('edge_updated', edge);
     }
 
+    await upsertGraphSnapshot(store.getAllNodes(), store.getAllEdges());
+
     // 5. Update top paths
     const topPaths = store.getTopPaths(eventNodeId, 4, 8);
     broadcastSSE('paths_updated', { event_id: eventNodeId, paths: topPaths });
   }
+
+  broadcastSSE('status', { job_id: jobId, stage: 'completed', article_id: article.id });
 
   return {
     event_detected: extraction.is_event,

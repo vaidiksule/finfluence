@@ -1,17 +1,19 @@
 'use client';
 
 import React from 'react';
-import { GraphEdge } from '@/lib/types';
+import { GraphEdge, GraphNode } from '@/lib/types';
 import { ShieldCheck, ShieldAlert, AlertTriangle, TrendingUp, TrendingDown, Clock, BookOpen } from 'lucide-react';
 
 interface EdgeDetailProps {
   edge: GraphEdge;
+  nodes: GraphNode[];
   onClose: () => void;
 }
 
-export default function EdgeDetail({ edge, onClose }: EdgeDetailProps) {
+export default function EdgeDetail({ edge, nodes, onClose }: EdgeDetailProps) {
   const srcId = typeof edge.source === 'object' ? (edge.source as any).id : edge.source;
   const tgtId = typeof edge.target === 'object' ? (edge.target as any).id : edge.target;
+  const labelFor = (id: string) => nodes.find((node) => node.id === id)?.label || id;
 
   const es = edge.event_study;
 
@@ -49,9 +51,9 @@ export default function EdgeDetail({ edge, onClose }: EdgeDetailProps) {
 
         {/* Link Title */}
         <div className="mt-3 text-sm font-semibold text-white tracking-tight">
-          <span className="text-zinc-100">{srcId}</span>
+          <span className="text-zinc-100">{labelFor(srcId)}</span>
           <span className="mx-2 text-zinc-500 font-normal text-xs uppercase tracking-wider">→ {edge.relation} →</span>
-          <span className="text-zinc-300">{tgtId}</span>
+          <span className="text-zinc-300">{labelFor(tgtId)}</span>
         </div>
 
         {edge.mechanism_tag && (

@@ -46,6 +46,7 @@ const NODE_COLORS: Record<NodeType, string> = {
 
 // Edge Grayscale hierarchy
 const STATE_COLORS: Record<EdgeState, string> = {
+  proposed: '#52525b',    // Pending evidence review
   validated: '#ffffff',    // Solid luminous white
   contradicted: '#71717a', // Muted metallic gray with dashed or low-dim
   inferred: '#3f3f46',     // Subtle dark zinc

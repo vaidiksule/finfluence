@@ -1,16 +1,18 @@
 'use client';
 
 import React from 'react';
-import { RipplePath } from '@/lib/types';
+import { GraphNode, RipplePath } from '@/lib/types';
 import { Route, ArrowRight, ShieldAlert, Sparkles } from 'lucide-react';
 
 interface PathListProps {
   paths: RipplePath[];
+  nodes: GraphNode[];
   selectedPathId?: string | null;
   onSelectPath: (path: RipplePath) => void;
 }
 
-export default function PathList({ paths, selectedPathId, onSelectPath }: PathListProps) {
+export default function PathList({ paths, nodes, selectedPathId, onSelectPath }: PathListProps) {
+  const labelFor = (id: string) => nodes.find((node) => node.id === id)?.label || id;
   if (paths.length === 0) {
     return (
       <div className="flex h-48 flex-col items-center justify-center p-6 text-center text-zinc-500 text-xs font-sans">
@@ -73,7 +75,7 @@ export default function PathList({ paths, selectedPathId, onSelectPath }: PathLi
                         : 'bg-zinc-900/60 text-zinc-400 border-white/5'
                     }`}
                   >
-                    {nodeId}
+                    {labelFor(nodeId)}
                   </span>
                   {nIdx < p.nodes.length - 1 && (
                     <ArrowRight className="h-3 w-3 text-zinc-600 shrink-0" />

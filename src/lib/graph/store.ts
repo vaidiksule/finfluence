@@ -1,4 +1,4 @@
-import { GraphEdge, GraphNode, RipplePath } from '../types';
+import { GraphEdge, GraphNode, IngestedArticle, RipplePath } from '../types';
 import entitiesData from '../../data/entities.json';
 import priorGraphData from '../../data/prior_graph.json';
 import marketCacheData from '../../data/market_cache.json';
@@ -6,12 +6,15 @@ import { computeEventStudyWindow, identifyTriggers, PriceSeries } from '../quant
 import { computeLaggedCorrelation } from '../quant/correlation';
 import { assignEdgeState, computeEdgeConfidence } from '../quant/scoring';
 import { loadPersistedMarketSeries } from '../persistence/local';
+import { loadPersistedGraph } from '../persistence/supabase';
 
 export class GraphStore {
   private nodes: Map<string, GraphNode> = new Map();
   private edges: Map<string, GraphEdge> = new Map();
   private marketCache: Record<string, PriceSeries> = marketCacheData as Record<string, PriceSeries>;
   private hasHydratedPersistedMarketData = false;
+  private hasHydratedPersistedGraph = false;
+  private persistedArticles: IngestedArticle[] = [];
 
   constructor() {
     this.initFromPrior();
@@ -84,6 +87,21 @@ export class GraphStore {
 
   public getAllEdges(): GraphEdge[] {
     return Array.from(this.edges.values());
+  }
+
+  public getArticles(): IngestedArticle[] {
+    return this.persistedArticles;
+  }
+
+  public async hydratePersistedGraph(): Promise<void> {
+    if (this.hasHydratedPersistedGraph) return;
+    const snapshot = await loadPersistedGraph();
+    if (snapshot && snapshot.nodes.length > 0) {
+      this.nodes = new Map(snapshot.nodes.map((node) => [node.id, node]));
+      this.edges = new Map(snapshot.edges.map((edge) => [edge.id, edge]));
+      this.persistedArticles = snapshot.articles;
+    }
+    this.hasHydratedPersistedGraph = true;
   }
 
   public setMarketSeries(ticker: string, series: PriceSeries): void {
@@ -164,12 +182,17 @@ export class GraphStore {
         edge.corr_best = lagCorr.best_corr;
         edge.confidence = confRes.confidence;
         edge.components_used = confRes.components_used;
-        edge.state = verdict.state;
-        edge.state_reason = verdict.reason;
+        edge.state = edge.review_status === 'proposed' && triggerIndices.length < 5
+          ? 'proposed'
+          : verdict.state;
+        edge.state_reason = edge.state === 'proposed'
+          ? `Awaiting sufficient evidence: ${triggerIndices.length} qualifying triggers (minimum 5)`
+          : verdict.reason;
+        edge.audit_version = 'audit-v1';
         edge.last_validated = new Date().toISOString();
       } else {
         // Unmeasurable entity on one or both ends
-        edge.state = 'inferred';
+        edge.state = edge.review_status === 'proposed' ? 'proposed' : 'inferred';
         edge.state_reason = !srcNode?.measurable || !tgtNode?.measurable
           ? 'Unmeasurable macro concept (evidence-only validation, no direct price series)'
           : 'Price series not available';

@@ -220,7 +220,7 @@ export default function NodeDetail({
               <button key={`evidence-${edge.id}`} onClick={() => onSelectEdge(edge.id)} className="w-full rounded-xl border border-white/5 bg-zinc-900/50 p-3 text-left hover:border-cyan-300/25 hover:bg-zinc-800/70">
                 <div className="flex items-center gap-2">
                   {getSignalIcon(edge.direction)}
-                  <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-zinc-200">{edgeTarget(edge, direction)} <span className="text-zinc-600">• {edge.relation}</span></span>
+                  <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-zinc-200">{nodeLabel(edgeTarget(edge, direction))} <span className="text-zinc-600">• {edge.relation}</span></span>
                   <span className="font-mono text-[10px] text-cyan-200">{Math.round(edge.confidence * 100)}%</span>
                 </div>
                 <p className="mt-1.5 line-clamp-2 text-[10px] leading-relaxed text-zinc-500">{edge.rationale}</p>

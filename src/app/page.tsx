@@ -6,6 +6,7 @@ import Graph3D from '@/components/Graph3D';
 import Legend from '@/components/Legend';
 import DetailPanel from '@/components/DetailPanel';
 import { GraphEdge, GraphNode, IngestedArticle, MarketType, RipplePath } from '@/lib/types';
+import { createClient } from '@supabase/supabase-js';
 
 export default function Home() {
   const [nodes, setNodes] = useState<GraphNode[]>([]);
@@ -28,6 +29,8 @@ export default function Home() {
   const [isRefreshingMarketData, setIsRefreshingMarketData] = useState(false);
   const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState<string | null>(null);
+  const [isSubmittingArticle, setIsSubmittingArticle] = useState(false);
+  const [submitArticleStatus, setSubmitArticleStatus] = useState<string | null>(null);
 
   // Load graph data from API
   const fetchGraphData = useCallback(async () => {
@@ -41,6 +44,7 @@ export default function Home() {
         const data = await res.json();
         setNodes(data.nodes || []);
         setEdges(data.edges || []);
+        setArticles(data.articles || []);
         setStats(data.stats || null);
       }
     } catch (err) {
@@ -99,6 +103,37 @@ export default function Home() {
 
     return () => {
       eventSource.close();
+    };
+  }, []);
+
+  // Use durable Supabase Realtime updates when configured; the local SSE stream remains a development fallback.
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    if (!url || !key) return;
+
+    const supabase = createClient(url, key, { auth: { persistSession: false } });
+    const channel = supabase
+      .channel('finfluence-graph')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'graph_nodes' }, (payload) => {
+        const node = payload.new as GraphNode;
+        if (payload.eventType === 'INSERT') setNodes((previous) => previous.some((item) => item.id === node.id) ? previous : [...previous, node]);
+        if (payload.eventType === 'UPDATE') setNodes((previous) => previous.map((item) => item.id === node.id ? { ...item, ...node } : item));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'graph_edges' }, (payload) => {
+        const row = payload.new as GraphEdge & { source_id?: string; target_id?: string };
+        const edge = { ...row, source: row.source_id || row.source, target: row.target_id || row.target } as GraphEdge;
+        if (payload.eventType === 'INSERT') setEdges((previous) => previous.some((item) => item.id === edge.id) ? previous : [...previous, edge]);
+        if (payload.eventType === 'UPDATE') setEdges((previous) => previous.map((item) => item.id === edge.id ? { ...item, ...edge } : item));
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'articles' }, (payload) => {
+        const article = payload.new as IngestedArticle;
+        setArticles((previous) => previous.some((item) => item.id === article.id) ? previous : [article, ...previous]);
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
     };
   }, []);
 
@@ -201,6 +236,28 @@ export default function Home() {
     }
   };
 
+  const handleSubmitArticle = async (article: { title: string; summary: string; source: string; url: string }) => {
+    setIsSubmittingArticle(true);
+    setSubmitArticleStatus('Saving source and extracting the event...');
+    try {
+      const response = await fetch('/api/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(article)
+      });
+      const result = (await response.json()) as { article?: IngestedArticle; pipeline_result?: { event_detected: boolean; nodes_added: number; edges_added: number }; error?: string };
+      if (!response.ok) throw new Error(result.error || 'Article analysis failed.');
+      if (result.article) setArticles((previous) => [result.article as IngestedArticle, ...previous.filter((item) => item.id !== result.article?.id)]);
+      await fetchGraphData();
+      setSubmitArticleStatus(result.pipeline_result?.event_detected ? `Graph updated: ${result.pipeline_result.nodes_added} nodes and ${result.pipeline_result.edges_added} proposed pathways added.` : 'No market event was detected in this article.');
+    } catch (error) {
+      setSubmitArticleStatus(error instanceof Error ? error.message : 'Article analysis failed.');
+      throw error;
+    } finally {
+      setIsSubmittingArticle(false);
+    }
+  };
+
   // Derived selected objects
   const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) || null : null;
   const selectedEdge = selectedEdgeId ? edges.find((e) => e.id === selectedEdgeId) || null : null;
@@ -225,9 +282,9 @@ export default function Home() {
       />
 
       {/* Main Content Area: 3D Galaxy (68%) + Detail Panel (32%) */}
-      <main className="relative flex flex-1 flex-col overflow-hidden lg:flex-row">
+      <main className="relative flex flex-1 flex-col overflow-y-auto sm:flex-row sm:overflow-hidden">
         {/* 3D Force-Directed WebGL Canvas */}
-        <div className="relative min-h-0 min-w-0 flex-1">
+        <div className="relative order-2 h-[60vh] min-h-[420px] min-w-0 shrink-0 flex-1 sm:h-full">
           <Graph3D
             nodes={nodes}
             edges={edges}
@@ -245,7 +302,9 @@ export default function Home() {
         </div>
 
         {/* Side Detail Panel */}
-        <aside className="absolute bottom-0 left-0 z-30 h-[min(58vh,620px)] w-full border-t border-white/[0.08] lg:static lg:h-full lg:w-96 lg:border-t-0 lg:w-[420px]">
+        <aside style={selectedNode || selectedEdge ? { width: '500px', maxWidth: '44vw' } : undefined} className={`${selectedNode || selectedEdge
+          ? 'absolute inset-y-0 left-0 z-30 h-full w-[280px] max-w-[44vw] border-r border-white/[0.08] shadow-2xl'
+          : 'static order-1 h-[min(40vh,460px)] min-h-[360px] w-full shrink-0 border-t border-white/[0.08] sm:h-full sm:min-h-0 sm:w-80 sm:border-t-0 sm:border-r sm:border-white/[0.08] lg:w-[320px]'}`}>
           <DetailPanel
             selectedNode={selectedNode}
             selectedEdge={selectedEdge}
@@ -272,6 +331,9 @@ export default function Home() {
             onRunAnalysis={handleRunAnalysis}
             isRunningAnalysis={isRunningAnalysis}
             analysisStatus={analysisStatus}
+            onSubmitArticle={handleSubmitArticle}
+            isSubmittingArticle={isSubmittingArticle}
+            submitArticleStatus={submitArticleStatus}
           />
         </aside>
       </main>

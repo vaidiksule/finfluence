@@ -304,7 +304,6 @@ function DashboardContent() {
                 onEdgeClick={handleEdgeClick}
                 onBackgroundClick={handleClearSelection}
                 showWeakEdges={showWeakEdges}
-                resetTrigger={resetTrigger}
               />
               <Legend />
             </>

@@ -31,6 +31,9 @@ interface DetailPanelProps {
   onRunAnalysis?: () => void;
   isRunningAnalysis?: boolean;
   analysisStatus?: string | null;
+  onSubmitArticle?: (article: { title: string; summary: string; source: string; url: string }) => Promise<void>;
+  isSubmittingArticle?: boolean;
+  submitArticleStatus?: string | null;
 }
 
 export default function DetailPanel({
@@ -52,7 +55,10 @@ export default function DetailPanel({
   isRefreshingMarketData = false,
   onRunAnalysis,
   isRunningAnalysis = false,
-  analysisStatus
+  analysisStatus,
+  onSubmitArticle,
+  isSubmittingArticle = false,
+  submitArticleStatus
 }: DetailPanelProps) {
   const [activeTab, setActiveTab] = useState<'inspect' | 'paths' | 'uncertainty' | 'news' | 'watchlist'>('inspect');
 
@@ -136,7 +142,7 @@ export default function DetailPanel({
                 onClose={onClearSelection}
               />
             ) : selectedEdge ? (
-              <EdgeDetail edge={selectedEdge} onClose={onClearSelection} />
+              <EdgeDetail edge={selectedEdge} nodes={nodes} onClose={onClearSelection} />
             ) : (
               <MarketBrief
                 scenario={activeScenario}
@@ -154,6 +160,7 @@ export default function DetailPanel({
         {activeTab === 'paths' && (
           <PathList
             paths={paths}
+            nodes={nodes}
             selectedPathId={selectedPathId}
             onSelectPath={onSelectPath}
           />
@@ -171,6 +178,9 @@ export default function DetailPanel({
         {activeTab === 'news' && (
           <NewsFeed
             articles={articles}
+            onSubmitArticle={onSubmitArticle}
+            isSubmitting={isSubmittingArticle}
+            submitStatus={submitArticleStatus}
             onSelectArticle={(art) => {
               if (art.extracted_entities && art.extracted_entities.length > 0) {
                 onSelectNode(art.extracted_entities[0]);

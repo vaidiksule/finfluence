@@ -20,7 +20,7 @@ export type RelationType =
 
 export type EdgeDirection = 'positive' | 'negative' | 'ambiguous';
 
-export type EdgeState = 'stated' | 'inferred' | 'validated' | 'contradicted';
+export type EdgeState = 'proposed' | 'stated' | 'inferred' | 'validated' | 'contradicted';
 
 export type CreatedByType = 'prior' | 'llm' | 'article';
 
@@ -45,6 +45,16 @@ export interface ArticleEvidence {
   quote_span?: string;
 }
 
+export interface EvidenceProvenance {
+  article_id: string;
+  url?: string;
+  quote_span?: string;
+  retrieved_at: string;
+  content_hash?: string;
+  extraction_model?: string;
+  extraction_version?: string;
+}
+
 export interface GraphNode {
   id: string;
   label: string;
@@ -57,6 +67,7 @@ export interface GraphNode {
   first_seen?: string;
   last_seen?: string;
   unresolved?: boolean;
+  review_status?: 'pending' | 'approved' | 'rejected';
   // 3D visualization coordinates (populated dynamically by 3d force graph)
   x?: number;
   y?: number;
@@ -90,6 +101,9 @@ export interface GraphEdge {
   created_by: CreatedByType;
   cited_sentence?: string;
   state_reason?: string;
+  review_status?: 'proposed' | 'approved' | 'rejected';
+  provenance?: EvidenceProvenance[];
+  audit_version?: string;
 }
 
 export interface RipplePath {
@@ -133,6 +147,11 @@ export interface IngestedArticle {
   event?: DetectedEvent | null;
   extracted_entities?: string[];
   proposed_edges_count?: number;
+  content_hash?: string;
+  retrieved_at?: string;
+  extraction_model?: string;
+  extraction_version?: string;
+  source_kind?: 'user_submitted' | 'rss' | 'public_url' | 'replay';
 }
 
 export type SSEEventType =

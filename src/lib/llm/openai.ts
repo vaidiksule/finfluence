@@ -2,7 +2,9 @@ import OpenAI from 'openai';
 import entitiesData from '../../data/entities.json';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPEN_AI_API_KEY || ''
+  apiKey: process.env.OPEN_AI_API_KEY || '',
+  timeout: 15_000,
+  maxRetries: 1
 });
 
 export interface ExtractionResult {

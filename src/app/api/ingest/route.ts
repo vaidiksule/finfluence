@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { fetchLiveNews } from '@/lib/ingest/rss';
 import { processArticlePipeline } from '@/lib/pipeline';
 import { IngestedArticle } from '@/lib/types';
+import { fetchPublicArticle } from '@/lib/ingest/web';
+import { appendArticleRecord } from '@/lib/persistence/local';
+import { createAnalysisJob, updateAnalysisJob } from '@/lib/persistence/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -35,26 +38,45 @@ export async function POST(request: Request) {
     }
 
     // 2. Manual paste single article
-    const { title, summary, source } = body;
-    if (!title) {
-      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    let { title, summary, source, url, published_at } = body;
+    if (url && !summary) {
+      const fetched = await fetchPublicArticle(url);
+      title = fetched.title;
+      summary = fetched.summary;
+    }
+    if (!title || !summary) {
+      return NextResponse.json({ error: 'Title and article text are required, or provide a public article URL.' }, { status: 400 });
     }
 
     const article: IngestedArticle = {
       id: `manual_${Date.now()}`,
       source: source || 'Manual Demo Ingest',
+      url: url || undefined,
       title,
       summary: summary || title,
-      published_at: new Date().toISOString(),
+      published_at: published_at || new Date().toISOString(),
       fetched_at: new Date().toISOString(),
-      is_replay: false
+      is_replay: false,
+      source_kind: url ? 'public_url' : 'user_submitted'
     };
 
-    const result = await processArticlePipeline(article);
+    await appendArticleRecord(article);
+    const jobId = await createAnalysisJob(article.id);
+    if (jobId) await updateAnalysisJob(jobId, { status: 'running' });
+
+    let result;
+    try {
+      result = await processArticlePipeline(article, jobId || undefined);
+      if (jobId) await updateAnalysisJob(jobId, { status: 'succeeded' });
+    } catch (error) {
+      if (jobId) await updateAnalysisJob(jobId, { status: 'failed', error: error instanceof Error ? error.message : 'Analysis failed' });
+      throw error;
+    }
 
     return NextResponse.json({
       success: true,
       article,
+      job_id: jobId,
       pipeline_result: result
     });
   } catch (error: any) {
