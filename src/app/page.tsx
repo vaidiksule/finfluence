@@ -148,10 +148,16 @@ export default function Home() {
     setIsReplay(true);
     setReplayScenario(scenario);
     try {
+      const primaryNode = scenario === 'rate_hike_cycle' ? 'indicator.rate_expectations' : 'commodity.crude_oil';
+      setSelectedNodeId(primaryNode);
+      setSelectedEdgeId(null);
+      setSelectedPathId(null);
+      fetchPaths(primaryNode);
+
       await fetch('/api/replay', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenario, speed: 2000 })
+        body: JSON.stringify({ scenario, speed: 1500 })
       });
     } catch (e) {
       console.error('Replay error:', e);

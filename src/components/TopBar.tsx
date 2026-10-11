@@ -139,23 +139,41 @@ export default function TopBar({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => onTriggerReplay('oil_spike_2022')}
-            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-zinc-300 border border-white/10 hover:bg-zinc-800 hover:text-white transition-all shadow-sm"
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-medium border transition-all shadow-sm ${
+              isReplay && replayScenario === 'oil_spike_2022'
+                ? 'bg-white text-black border-white font-semibold'
+                : 'bg-zinc-900 text-zinc-300 border-white/10 hover:bg-zinc-800 hover:text-white'
+            }`}
+            title="Replay Brent Crude $120 Spike (March 2022)"
           >
-            <Play className="h-2.5 w-2.5 text-zinc-400 fill-zinc-400" />
+            {isReplay && replayScenario === 'oil_spike_2022' ? (
+              <span className="h-2 w-2 rounded-full bg-black animate-ping" />
+            ) : (
+              <Play className="h-2.5 w-2.5 text-zinc-400 fill-zinc-400" />
+            )}
             Oil Spike
           </button>
           <button
             onClick={() => onTriggerReplay('rate_hike_cycle')}
-            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-zinc-300 border border-white/10 hover:bg-zinc-800 hover:text-white transition-all shadow-sm"
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-medium border transition-all shadow-sm ${
+              isReplay && replayScenario === 'rate_hike_cycle'
+                ? 'bg-white text-black border-white font-semibold'
+                : 'bg-zinc-900 text-zinc-300 border-white/10 hover:bg-zinc-800 hover:text-white'
+            }`}
+            title="Replay Central Bank Rate Tightening Cycle"
           >
-            <Play className="h-2.5 w-2.5 text-zinc-400 fill-zinc-400" />
+            {isReplay && replayScenario === 'rate_hike_cycle' ? (
+              <span className="h-2 w-2 rounded-full bg-black animate-ping" />
+            ) : (
+              <Play className="h-2.5 w-2.5 text-zinc-400 fill-zinc-400" />
+            )}
             Rate Hike
           </button>
         </div>
 
         <button
           onClick={onRefresh}
-          className="rounded-lg border border-white/10 bg-zinc-900 p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all shadow-sm"
+          className="rounded-lg border border-white/10 bg-zinc-900 p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all shadow-sm active:rotate-180"
           title="Recalculate in-memory quant backtest"
         >
           <RefreshCw className="h-3.5 w-3.5" />

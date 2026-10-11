@@ -77,15 +77,24 @@ export default function Graph3D({
     return edges.filter((e) => e.state === 'validated' || e.state === 'stated');
   }, [edges, showWeakEdges]);
 
-  // Format graph data for 3D force graph
+  // Format graph data for 3D force graph safely ensuring every link connects valid nodes
   const graphData = useMemo(() => {
+    const nodeIds = new Set(nodes.map((n) => n.id));
+    const validLinks = filteredEdges
+      .map((e) => {
+        const src = typeof e.source === 'object' ? (e.source as any).id : e.source;
+        const tgt = typeof e.target === 'object' ? (e.target as any).id : e.target;
+        return {
+          ...e,
+          source: src,
+          target: tgt
+        };
+      })
+      .filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
+
     return {
       nodes: nodes.map((n) => ({ ...n })),
-      links: filteredEdges.map((e) => ({
-        ...e,
-        source: typeof e.source === 'object' ? (e.source as any).id : e.source,
-        target: typeof e.target === 'object' ? (e.target as any).id : e.target
-      }))
+      links: validLinks
     };
   }, [nodes, filteredEdges]);
 
