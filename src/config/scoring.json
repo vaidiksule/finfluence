@@ -1,0 +1,18 @@
+{
+  "min_events_for_verdict": 5,
+  "validated_min_confidence": 0.60,
+  "contradicted_max_hit_rate": 0.40,
+  "significance_p_value_threshold": 0.05,
+  "suggestive_p_value_threshold": 0.10,
+  "weights": {
+    "event_study": 0.50,
+    "correlation": 0.25,
+    "article_evidence": 0.25
+  },
+  "estimation_window_days": 60,
+  "estimation_gap_days": 5,
+  "event_study_windows": [1, 5, 10],
+  "trigger_threshold_sigma": 2.0,
+  "rolling_correlation_window": 90,
+  "max_lags": 5
+}
