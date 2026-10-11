@@ -1,9 +1,290 @@
 {
   "entities": [
-    { "id": "commodity.crude_oil", "label": "Crude Oil", "type": "commodity", "aliases": ["oil", "WTI", "Brent"] },
-    { "id": "indicator.inflation", "label": "Inflation Rate", "type": "indicator", "aliases": ["CPI", "inflation"] },
-    { "id": "sector.bank", "label": "Banking Sector", "type": "sector", "aliases": ["banks"] },
-    { "id": "asset.nifty_bank", "label": "NIFTY Bank Index", "type": "asset", "ticker": "^NSEBANK" },
-    { "id": "asset.indigo", "label": "IndiGo Airlines", "type": "asset", "ticker": "IGO" }
+    {
+      "id": "commodity.crude_oil",
+      "label": "Brent Crude Oil",
+      "aliases": ["Brent", "Brent crude", "crude oil", "oil", "petroleum", "WTI crude"],
+      "type": "commodity",
+      "market": "Global",
+      "ticker": "BZ=F",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Global benchmark crude oil price"
+    },
+    {
+      "id": "commodity.gold",
+      "label": "Gold",
+      "aliases": ["gold", "bullion", "XAU"],
+      "type": "commodity",
+      "market": "Global",
+      "ticker": "GC=F",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Safe-haven precious metal"
+    },
+    {
+      "id": "currency.usd_inr",
+      "label": "USD / INR",
+      "aliases": ["USD/INR", "rupee", "Indian rupee", "dollar rupee"],
+      "type": "currency",
+      "market": "India",
+      "ticker": "INR=X",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Exchange rate of Indian Rupee per US Dollar"
+    },
+    {
+      "id": "index.nifty_50",
+      "label": "Nifty 50",
+      "aliases": ["Nifty", "Nifty 50", "NSE benchmark", "Indian equities"],
+      "type": "index",
+      "market": "India",
+      "ticker": "^NSEI",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "National Stock Exchange of India flagship index"
+    },
+    {
+      "id": "index.nifty_bank",
+      "label": "Nifty Bank",
+      "aliases": ["Bank Nifty", "Nifty Bank", "banking index", "Indian banks"],
+      "type": "index",
+      "market": "India",
+      "ticker": "^NSEBANK",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Index representing major Indian banking stocks"
+    },
+    {
+      "id": "index.nifty_realty",
+      "label": "Nifty Realty",
+      "aliases": ["Nifty Realty", "realty index", "real estate index"],
+      "type": "index",
+      "market": "India",
+      "ticker": "^CNXREALTY",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Index representing Indian real estate developers"
+    },
+    {
+      "id": "index.sp_500",
+      "label": "S&P 500",
+      "aliases": ["S&P 500", "SPX", "US equities", "Wall Street benchmark"],
+      "type": "index",
+      "market": "US",
+      "ticker": "^GSPC",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Standard & Poor's 500 index"
+    },
+    {
+      "id": "instrument.yield_10y",
+      "label": "Government 10Y Yield",
+      "aliases": ["10Y yield", "bond yield", "gilt yield", "10-year treasury", "benchmark yield"],
+      "type": "instrument",
+      "market": "Global",
+      "ticker": "^TNX",
+      "measurable": true,
+      "proxy_of": "India 10Y yield (measured via 10Y sovereign proxy)",
+      "description": "10-Year Sovereign Benchmark Yield proxy"
+    },
+    {
+      "id": "company.ongc",
+      "label": "ONGC",
+      "aliases": ["ONGC", "Oil and Natural Gas Corporation"],
+      "type": "company",
+      "market": "India",
+      "ticker": "ONGC.NS",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "India's largest upstream crude oil and natural gas explorer"
+    },
+    {
+      "id": "company.indigo",
+      "label": "InterGlobe Aviation (IndiGo)",
+      "aliases": ["IndiGo", "InterGlobe", "Indigo Airlines"],
+      "type": "company",
+      "market": "India",
+      "ticker": "INDIGO.NS",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Largest passenger airline in India by market share"
+    },
+    {
+      "id": "company.asian_paints",
+      "label": "Asian Paints",
+      "aliases": ["Asian Paints", "Asian Paints Ltd"],
+      "type": "company",
+      "market": "India",
+      "ticker": "ASIANPAINT.NS",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Largest Indian paint manufacturer, heavy consumer of petroleum derivatives"
+    },
+    {
+      "id": "company.hdfc_bank",
+      "label": "HDFC Bank",
+      "aliases": ["HDFC Bank", "HDFC", "HDFCBANK"],
+      "type": "company",
+      "market": "India",
+      "ticker": "HDFCBANK.NS",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Leading private sector bank in India"
+    },
+    {
+      "id": "company.reliance",
+      "label": "Reliance Industries",
+      "aliases": ["Reliance", "RIL", "Reliance Industries Ltd"],
+      "type": "company",
+      "market": "India",
+      "ticker": "RELIANCE.NS",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Indian conglomerate with major oil-to-chemicals refining capacity"
+    },
+    {
+      "id": "company.tcs",
+      "label": "Tata Consultancy Services (TCS)",
+      "aliases": ["TCS", "Tata Consultancy", "Tata Consultancy Services"],
+      "type": "company",
+      "market": "India",
+      "ticker": "TCS.NS",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Largest Indian IT software services exporter (USD revenue earner)"
+    },
+    {
+      "id": "indicator.inflation_expectations",
+      "label": "Inflation Expectations",
+      "aliases": ["inflation", "CPI", "retail inflation", "price pressures", "headline inflation"],
+      "type": "indicator",
+      "market": "Global",
+      "ticker": null,
+      "measurable": false,
+      "proxy_of": null,
+      "description": "Expected rate of consumer price index inflation"
+    },
+    {
+      "id": "indicator.rate_expectations",
+      "label": "Policy Rate Expectations",
+      "aliases": ["rate expectations", "repo rate expectations", "rate hike bets", "monetary tightening"],
+      "type": "indicator",
+      "market": "Global",
+      "ticker": null,
+      "measurable": false,
+      "proxy_of": null,
+      "description": "Market expectations of future central bank policy interest rates"
+    },
+    {
+      "id": "indicator.fuel_costs",
+      "label": "Aviation Fuel Costs (ATF)",
+      "aliases": ["fuel costs", "ATF", "jet fuel", "aviation fuel prices"],
+      "type": "indicator",
+      "market": "India",
+      "ticker": "BZ=F",
+      "measurable": false,
+      "proxy_of": "commodity.crude_oil",
+      "description": "Cost of jet fuel, highly correlated with crude oil"
+    },
+    {
+      "id": "indicator.input_costs",
+      "label": "Industrial Input Costs",
+      "aliases": ["raw material costs", "petrochemical inputs", "input costs", "raw materials"],
+      "type": "indicator",
+      "market": "Global",
+      "ticker": "BZ=F",
+      "measurable": false,
+      "proxy_of": "commodity.crude_oil",
+      "description": "Petrochemical and solvent input expenses for manufacturers"
+    },
+    {
+      "id": "indicator.imported_inflation",
+      "label": "Imported Inflation",
+      "aliases": ["imported inflation", "import bill", "current account pressure"],
+      "type": "indicator",
+      "market": "India",
+      "ticker": null,
+      "measurable": false,
+      "proxy_of": null,
+      "description": "Domestic price pressure driven by rupee depreciation and imported energy"
+    },
+    {
+      "id": "sector.aviation",
+      "label": "Aviation Sector",
+      "aliases": ["airlines", "aviation", "airline industry"],
+      "type": "sector",
+      "market": "India",
+      "ticker": "INDIGO.NS",
+      "measurable": false,
+      "proxy_of": "company.indigo",
+      "description": "Commercial passenger airline sector"
+    },
+    {
+      "id": "sector.paints_chemicals",
+      "label": "Paints & Chemicals Sector",
+      "aliases": ["paints", "coatings", "specialty chemicals"],
+      "type": "sector",
+      "market": "India",
+      "ticker": "ASIANPAINT.NS",
+      "measurable": false,
+      "proxy_of": "company.asian_paints",
+      "description": "Paints, coatings, and specialty chemical manufacturers"
+    },
+    {
+      "id": "sector.banking",
+      "label": "Banking & Financials",
+      "aliases": ["banks", "banking sector", "lenders", "financials"],
+      "type": "sector",
+      "market": "India",
+      "ticker": "^NSEBANK",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Commercial banking and retail lending institutions"
+    },
+    {
+      "id": "sector.realty",
+      "label": "Real Estate Sector",
+      "aliases": ["real estate", "housing", "property developers"],
+      "type": "sector",
+      "market": "India",
+      "ticker": "^CNXREALTY",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Housing and commercial real estate development sector"
+    },
+    {
+      "id": "sector.it_exporters",
+      "label": "IT Services Exporters",
+      "aliases": ["IT sector", "tech exporters", "software exporters"],
+      "type": "sector",
+      "market": "India",
+      "ticker": "TCS.NS",
+      "measurable": true,
+      "proxy_of": null,
+      "description": "Indian information technology outsourcing companies"
+    },
+    {
+      "id": "institution.rbi",
+      "label": "Reserve Bank of India (RBI)",
+      "aliases": ["RBI", "Reserve Bank", "Monetary Policy Committee", "MPC"],
+      "type": "institution",
+      "market": "India",
+      "ticker": null,
+      "measurable": false,
+      "proxy_of": null,
+      "description": "India's central bank and monetary authority"
+    },
+    {
+      "id": "institution.fed",
+      "label": "Federal Reserve (Fed)",
+      "aliases": ["Fed", "Federal Reserve", "FOMC", "US central bank"],
+      "type": "institution",
+      "market": "US",
+      "ticker": null,
+      "measurable": false,
+      "proxy_of": null,
+      "description": "Central bank of the United States"
+    }
   ]
 }
