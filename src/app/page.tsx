@@ -63,6 +63,42 @@ export default function Home() {
     fetchPaths('commodity.crude_oil');
   }, [fetchGraphData, fetchPaths]);
 
+  // Connect to real-time Server-Sent Events stream (/api/stream)
+  useEffect(() => {
+    const eventSource = new EventSource('/api/stream');
+
+    eventSource.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'node_added') {
+          setNodes((prev) => {
+            if (prev.some((n) => n.id === msg.data.id)) return prev;
+            return [...prev, msg.data];
+          });
+        } else if (msg.type === 'edge_added') {
+          setEdges((prev) => {
+            if (prev.some((e) => e.id === msg.data.id)) return prev;
+            return [...prev, msg.data];
+          });
+        } else if (msg.type === 'edge_updated') {
+          setEdges((prev) =>
+            prev.map((e) => (e.id === msg.data.id ? { ...e, ...msg.data } : e))
+          );
+        } else if (msg.type === 'article_ingested') {
+          setArticles((prev) => [msg.data, ...prev.slice(0, 30)]);
+        } else if (msg.type === 'paths_updated') {
+          if (msg.data.paths) setPaths(msg.data.paths);
+        }
+      } catch (e) {
+        console.error('SSE parse error:', e);
+      }
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   // Handle Search Node matching
   const matchingNodeId = React.useMemo(() => {
     if (!searchQuery.trim()) return null;
