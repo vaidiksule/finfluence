@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Finfluence
+
+> **Autonomous Financial Event Market Impact Graph**  
+> *Hackwave 3.0 — Problem Statement 5*
+
+Finfluence is a self-auditing financial intelligence system that ingests live financial news, extracts macro events and entities, and dynamically constructs a 3D knowledge graph illustrating how events (such as crude oil spikes or central bank interest rate decisions) propagate through economic indicators, sectors, and equities.
+
+**Core Principle:** *The LLM proposes relationships; historical market data judges them.*
+
+---
+
+## Key Features
+
+- **3D WebGL Shockwave Galaxy:** Built with Three.js (`react-force-graph-3d`), featuring luminous spheres, floating billboards, and directional animated particle shockwaves (`linkDirectionalParticles`).
+- **Sub-60-Second Real-Time Pipeline:** Parallel RSS feed parsing, single-pass structured extraction (`gpt-4o-mini`), and in-memory vector backtesting deliver a fully connected, audited graph in under 30–60 seconds.
+- **Empirical Event Study & Quant Validation:**
+  - $2\sigma$ historical volatility shock trigger identification
+  - Cumulative Abnormal Returns (CAR) computed across 1, 5, and 10 trading day windows with baseline estimation
+  - Rolling lagged correlations (0–5 days)
+  - Student-$t$ significance testing ($p < 0.05$ significant, $p < 0.10$ suggestive)
+- **Radical Honesty & Explanations:**
+  - Contradicted hypotheses remain visible in red with empirical refutation.
+  - Edges with $n < 5$ historical samples are honestly tagged as `inferred (low sample)`.
+  - Non-measurable indicators (e.g. inflation expectations) explicitly disclose proxy dependencies.
+- **Unified Next.js 14+ (App Router):** Zero-friction single deployment, local development with one command, zero CORS issues.
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 20+ LTS
+- npm
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/vaidiksule/finfluence.git
+   cd finfluence
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Add your OPEN_AI_API_KEY
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## Project Structure
+
+```
+├── DECISIONS.md                   # Complete architectural and quant parameter log
+├── src/
+│   ├── app/
+│   │   ├── api/                   # Ingestion, replay, and SSE routes
+│   │   ├── globals.css            # Dark glassmorphism financial aesthetic
+│   │   ├── layout.tsx             # Root layout with offline-safe typography
+│   │   └── page.tsx               # Main 3D dashboard layout
+│   ├── components/                # 3D force graph, detail panels, path lists
+│   ├── config/
+│   │   └── scoring.json           # Quant thresholds and event study parameters
+│   ├── data/
+│   │   ├── entities.json          # Canonical financial entity-ticker mappings
+│   │   ├── prior_graph.json       # Curated foundational macro impact edges
+│   │   └── market_cache.json      # Pre-warmed historical price return series
+│   └── lib/
+│       ├── quant/                 # Event study, CAR, correlation, scoring
+│       ├── graph/                 # In-memory graph store and DFS path tracer
+│       ├── llm/                   # OpenAI structured extraction client
+│       └── types.ts               # Unified TypeScript contracts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+MIT
