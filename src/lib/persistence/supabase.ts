@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { GraphEdge, GraphNode, IngestedArticle } from '@/lib/types';
+import { ResearchInputKind, SearchResult } from '@/lib/research/types';
 
 let client: SupabaseClient | null = null;
 
@@ -138,4 +139,46 @@ export async function updateAnalysisJob(id: string, update: { status: string; er
     updated_at: new Date().toISOString()
   }).eq('id', id);
   if (error) throw new Error(`Supabase job update failed: ${error.message}`);
+}
+
+export async function createResearchRun(inputText: string, inputKind: ResearchInputKind, searchProvider?: string): Promise<string | null> {
+  const supabase = getClient();
+  if (!supabase) return null;
+  const { data, error } = await supabase.from('research_runs').insert({ input_text: inputText, input_kind: inputKind, search_provider: searchProvider || null }).select('id').single();
+  if (error) throw new Error(`Supabase research run creation failed: ${error.message}`);
+  return data.id as string;
+}
+
+export async function updateResearchRun(id: string, update: { status: string; error?: string }): Promise<void> {
+  const supabase = getClient();
+  if (!supabase) return;
+  const { error } = await supabase.from('research_runs').update({
+    status: update.status,
+    error: update.error || null,
+    completed_at: ['completed', 'failed'].includes(update.status) ? new Date().toISOString() : null
+  }).eq('id', id);
+  if (error) throw new Error(`Supabase research run update failed: ${error.message}`);
+}
+
+export async function saveSourceDocuments(runId: string, results: SearchResult[]): Promise<void> {
+  const supabase = getClient();
+  if (!supabase || results.length === 0) return;
+  const { error } = await supabase.from('source_documents').insert(results.map((result) => ({
+    research_run_id: runId,
+    url: result.url,
+    canonical_url: result.url,
+    publisher: result.publisher || null,
+    title: result.title,
+    snippet: result.snippet || null,
+    published_at: result.published_at || null,
+    search_rank: result.rank
+  })));
+  if (error) throw new Error(`Supabase source write failed: ${error.message}`);
+}
+
+export async function saveGraphEvent(runId: string | null, eventType: string, payload: Record<string, unknown>): Promise<void> {
+  const supabase = getClient();
+  if (!supabase || !runId) return;
+  const { error } = await supabase.from('graph_events').insert({ research_run_id: runId, event_type: eventType, payload });
+  if (error) throw new Error(`Supabase graph event write failed: ${error.message}`);
 }

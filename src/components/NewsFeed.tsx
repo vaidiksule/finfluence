@@ -10,44 +10,36 @@ interface NewsFeedProps {
   onSubmitArticle?: (article: { title: string; summary: string; source: string; url: string }) => Promise<void>;
   isSubmitting?: boolean;
   submitStatus?: string | null;
+  onSubmitResearch?: (input: string) => Promise<void>;
+  isResearching?: boolean;
+  researchStatus?: string | null;
 }
 
-export default function NewsFeed({ articles, onSelectArticle, onSubmitArticle, isSubmitting = false, submitStatus }: NewsFeedProps) {
-  const [title, setTitle] = React.useState('');
-  const [summary, setSummary] = React.useState('');
-  const [source, setSource] = React.useState('');
-  const [url, setUrl] = React.useState('');
+export default function NewsFeed({ articles, onSelectArticle, onSubmitResearch, isResearching = false, researchStatus }: NewsFeedProps) {
+  const [researchInput, setResearchInput] = React.useState('');
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleResearchSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!onSubmitArticle || !title.trim() || (!summary.trim() && !url.trim())) return;
-    await onSubmitArticle({ title: title.trim(), summary: summary.trim(), source: source.trim() || 'User submitted source', url: url.trim() });
-    setTitle('');
-    setSummary('');
-    setSource('');
-    setUrl('');
+    if (!onSubmitResearch || !researchInput.trim()) return;
+    await onSubmitResearch(researchInput.trim());
+    setResearchInput('');
   };
 
   return (
     <div className="space-y-4 p-3 text-xs font-sans">
-      {onSubmitArticle && (
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.045] p-3.5">
+      {onSubmitResearch && (
+        <form onSubmit={handleResearchSubmit} className="rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.045] p-3.5">
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-cyan-200">
             <Newspaper className="h-3.5 w-3.5" /> Add a real news item
           </div>
-          <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-400">Paste the headline and article text. Finfluence will extract the event, map entities, and publish proposed pathways as they are processed.</p>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-400">Ask a market question, paste a headline, add article text, or enter a public URL. Finfluence will search, compare, and build a proposed evidence map.</p>
           <div className="mt-3 space-y-2">
-            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Headline" required className="w-full rounded-lg border border-white/10 bg-black/20 px-2.5 py-2 text-[11px] text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300/40" />
-            <textarea value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="Article text or a reliable summary (optional when a public URL is provided)" rows={4} className="w-full resize-none rounded-lg border border-white/10 bg-black/20 px-2.5 py-2 text-[11px] leading-relaxed text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300/40" />
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <input value={source} onChange={(event) => setSource(event.target.value)} placeholder="Source name" className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2 text-[11px] text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300/40" />
-              <input value={url} onChange={(event) => setUrl(event.target.value)} type="url" placeholder="Source URL (optional)" className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2 text-[11px] text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300/40" />
-            </div>
-            <button type="submit" disabled={isSubmitting || !title.trim() || (!summary.trim() && !url.trim())} className="w-full rounded-lg bg-cyan-300 px-3 py-2 text-[11px] font-semibold text-black transition-opacity disabled:cursor-not-allowed disabled:opacity-40">
-              {isSubmitting ? 'Building evidence map...' : 'Analyze and build graph'}
+            <textarea value={researchInput} onChange={(event) => setResearchInput(event.target.value)} placeholder="What happened in the market, or paste a public article URL..." required rows={5} className="w-full resize-none rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-[11px] leading-relaxed text-white outline-none placeholder:text-zinc-600 focus:border-cyan-300/40" />
+            <button type="submit" disabled={isResearching || !researchInput.trim()} className="w-full rounded-xl bg-cyan-300 px-3 py-2.5 text-[11px] font-semibold text-black transition-opacity disabled:cursor-not-allowed disabled:opacity-40">
+              {isResearching ? 'Researching and building graph...' : 'Research and build graph'}
             </button>
           </div>
-          {submitStatus && <p className="mt-2 text-[10px] leading-relaxed text-zinc-400">{submitStatus}</p>}
+          {researchStatus && <p className="mt-2 text-[10px] leading-relaxed text-zinc-400">{researchStatus}</p>}
         </form>
       )}
 

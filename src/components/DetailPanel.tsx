@@ -34,6 +34,9 @@ interface DetailPanelProps {
   onSubmitArticle?: (article: { title: string; summary: string; source: string; url: string }) => Promise<void>;
   isSubmittingArticle?: boolean;
   submitArticleStatus?: string | null;
+  onSubmitResearch?: (input: string) => Promise<void>;
+  isResearching?: boolean;
+  researchStatus?: string | null;
 }
 
 export default function DetailPanel({
@@ -58,7 +61,10 @@ export default function DetailPanel({
   analysisStatus,
   onSubmitArticle,
   isSubmittingArticle = false,
-  submitArticleStatus
+  submitArticleStatus,
+  onSubmitResearch,
+  isResearching = false,
+  researchStatus
 }: DetailPanelProps) {
   const [activeTab, setActiveTab] = useState<'inspect' | 'paths' | 'uncertainty' | 'news' | 'watchlist'>('inspect');
 
@@ -181,6 +187,9 @@ export default function DetailPanel({
             onSubmitArticle={onSubmitArticle}
             isSubmitting={isSubmittingArticle}
             submitStatus={submitArticleStatus}
+            onSubmitResearch={onSubmitResearch}
+            isResearching={isResearching}
+            researchStatus={researchStatus}
             onSelectArticle={(art) => {
               if (art.extracted_entities && art.extracted_entities.length > 0) {
                 onSelectNode(art.extracted_entities[0]);

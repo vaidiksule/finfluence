@@ -5,8 +5,40 @@ import TopBar from '@/components/TopBar';
 import Graph3D from '@/components/Graph3D';
 import Legend from '@/components/Legend';
 import DetailPanel from '@/components/DetailPanel';
+import GraphSwitcher from '@/components/GraphSwitcher';
 import { GraphEdge, GraphNode, IngestedArticle, MarketType, RipplePath } from '@/lib/types';
 import { createClient } from '@supabase/supabase-js';
+
+function graphNodeId(value: GraphEdge['source'] | GraphEdge['target']): string {
+  return typeof value === 'string' ? value : (value as unknown as { id: string }).id;
+}
+
+function edgePriority(edge: GraphEdge): number {
+  const stateWeight = edge.state === 'validated' ? 3 : edge.state === 'stated' ? 2 : edge.state === 'inferred' ? 1 : 0;
+  return stateWeight * 10 + edge.confidence;
+}
+
+function buildUpstreamChain(selectedId: string, edges: GraphEdge[]): { nodes: string[]; edges: string[] } {
+  type ChainResult = { nodes: string[]; edges: string[] };
+  const walk = (nodeId: string, visited: Set<string>): ChainResult => {
+    const incoming = edges
+      .filter((edge) => graphNodeId(edge.target) === nodeId && !visited.has(graphNodeId(edge.source)))
+      .sort((left, right) => edgePriority(right) - edgePriority(left));
+
+    if (incoming.length === 0) return { nodes: [nodeId], edges: [] };
+
+    const nextEdge = incoming[0];
+    const parentId = graphNodeId(nextEdge.source);
+    const nextVisited = new Set(visited).add(nodeId);
+    const parentChain = walk(parentId, nextVisited);
+    return {
+      nodes: [...parentChain.nodes, nodeId],
+      edges: [...parentChain.edges, nextEdge.id]
+    };
+  };
+
+  return walk(selectedId, new Set());
+}
 
 export default function Home() {
   const [nodes, setNodes] = useState<GraphNode[]>([]);
@@ -31,6 +63,9 @@ export default function Home() {
   const [analysisStatus, setAnalysisStatus] = useState<string | null>(null);
   const [isSubmittingArticle, setIsSubmittingArticle] = useState(false);
   const [submitArticleStatus, setSubmitArticleStatus] = useState<string | null>(null);
+  const [isResearching, setIsResearching] = useState(false);
+  const [researchStatus, setResearchStatus] = useState<string | null>(null);
+  const [isGraphReady, setIsGraphReady] = useState(false);
 
   // Load graph data from API
   const fetchGraphData = useCallback(async () => {
@@ -95,6 +130,18 @@ export default function Home() {
           setArticles((prev) => [msg.data, ...prev.slice(0, 30)]);
         } else if (msg.type === 'paths_updated') {
           if (msg.data.paths) setPaths(msg.data.paths);
+        } else if (msg.type === 'status' && msg.data?.stage) {
+          const stageLabels: Record<string, string> = {
+            received: 'Research run created.',
+            fetching_source: 'Reading the public source.',
+            searching_sources: 'Searching related sources.',
+            sources_found: `Found ${msg.data.count || 0} related sources.`,
+            extracting: 'Extracting the event and mechanisms.',
+            mapping_entities: 'Resolving companies, sectors, and commodities.',
+            auditing_evidence: 'Auditing proposed relationships.',
+            completed: 'Research complete.'
+          };
+          setResearchStatus(stageLabels[msg.data.stage] || `Research stage: ${msg.data.stage}.`);
         }
       } catch (e) {
         console.error('SSE parse error:', e);
@@ -258,6 +305,32 @@ export default function Home() {
     }
   };
 
+  const handleSubmitResearch = async (input: string) => {
+    setIsResearching(true);
+    setResearchStatus('Starting research run...');
+    try {
+      const response = await fetch('/api/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input })
+      });
+      const result = (await response.json()) as {
+        article?: IngestedArticle;
+        sources?: Array<{ title: string }>;
+        pipeline_result?: { nodes_added: number; edges_added: number; event_detected: boolean };
+        error?: string;
+      };
+      if (!response.ok) throw new Error(result.error || 'Research run failed.');
+      if (result.article) setArticles((previous) => [result.article as IngestedArticle, ...previous.filter((item) => item.id !== result.article?.id)]);
+      await fetchGraphData();
+      setResearchStatus(`Completed: ${result.sources?.length || 0} sources reviewed, ${result.pipeline_result?.nodes_added || 0} nodes and ${result.pipeline_result?.edges_added || 0} proposed links added.`);
+    } catch (error) {
+      setResearchStatus(error instanceof Error ? error.message : 'Research run failed.');
+    } finally {
+      setIsResearching(false);
+    }
+  };
+
   // Derived selected objects
   const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) || null : null;
   const selectedEdge = selectedEdgeId ? edges.find((e) => e.id === selectedEdgeId) || null : null;
@@ -269,8 +342,11 @@ export default function Home() {
     : [];
 
   const activePath = selectedPathId ? paths.find((p) => p.path_id === selectedPathId) : null;
-  const highlightedPathNodes = activePath ? activePath.nodes : [];
-  const highlightedPathEdgeIds = activePath ? activePath.edges.map((e) => e.id) : [];
+  const selectedNodeChain = selectedNodeId && !activePath
+    ? buildUpstreamChain(selectedNodeId, edges)
+    : null;
+  const highlightedPathNodes = activePath?.nodes || selectedNodeChain?.nodes || [];
+  const highlightedPathEdgeIds = activePath?.edges.map((edge) => edge.id) || selectedNodeChain?.edges || [];
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-black text-zinc-100 font-sans">
@@ -281,10 +357,10 @@ export default function Home() {
         onResetGraph={handleClearSelection}
       />
 
-      {/* Main Content Area: 3D Galaxy (68%) + Detail Panel (32%) */}
-      <main className="relative flex flex-1 flex-col overflow-y-auto sm:flex-row sm:overflow-hidden">
+      {/* Stable two-region shell: graph canvas plus optional inspector. */}
+      <main className="relative flex min-h-0 flex-1 overflow-hidden">
         {/* 3D Force-Directed WebGL Canvas */}
-        <div className="relative order-2 h-[60vh] min-h-[420px] min-w-0 shrink-0 flex-1 sm:h-full">
+        <section className="relative min-h-0 min-w-0 flex-1">
           <Graph3D
             nodes={nodes}
             edges={edges}
@@ -296,15 +372,26 @@ export default function Home() {
             onEdgeClick={handleEdgeClick}
             onBackgroundClick={handleClearSelection}
             showWeakEdges={showWeakEdges}
+            onReady={() => setIsGraphReady(true)}
+          />
+          <GraphSwitcher
+            activeGraph={replayScenario}
+            onSelectGraph={(graphId) => {
+              if (graphId === 'new_research') {
+                handleClearSelection();
+                return;
+              }
+              void handleTriggerReplay(graphId);
+            }}
           />
           {/* Floating Visual Legend */}
           <Legend />
-        </div>
+        </section>
 
         {/* Side Detail Panel */}
-        <aside style={selectedNode || selectedEdge ? { width: '500px', maxWidth: '44vw' } : undefined} className={`${selectedNode || selectedEdge
-          ? 'absolute inset-y-0 left-0 z-30 h-full w-[280px] max-w-[44vw] border-r border-white/[0.08] shadow-2xl'
-          : 'static order-1 h-[min(40vh,460px)] min-h-[360px] w-full shrink-0 border-t border-white/[0.08] sm:h-full sm:min-h-0 sm:w-80 sm:border-t-0 sm:border-r sm:border-white/[0.08] lg:w-[320px]'}`}>
+        {isGraphReady && <aside style={selectedNode || selectedEdge ? { width: '500px', maxWidth: '55vw' } : undefined} className={`${selectedNode || selectedEdge
+          ? 'absolute inset-y-0 left-0 z-30 h-full w-[500px] max-w-[55vw] border-r border-white/[0.08] shadow-2xl'
+          : 'relative z-20 h-full w-[320px] shrink-0 border-l border-white/[0.08]'}`}>
           <DetailPanel
             selectedNode={selectedNode}
             selectedEdge={selectedEdge}
@@ -334,8 +421,11 @@ export default function Home() {
             onSubmitArticle={handleSubmitArticle}
             isSubmittingArticle={isSubmittingArticle}
             submitArticleStatus={submitArticleStatus}
+            onSubmitResearch={handleSubmitResearch}
+            isResearching={isResearching}
+            researchStatus={researchStatus}
           />
-        </aside>
+        </aside>}
       </main>
     </div>
   );
