@@ -16,6 +16,7 @@ interface TopBarProps {
   onSearchChange: (q: string) => void;
   onTriggerReplay: (scenario: string) => void;
   onRefresh: () => void;
+  onReturnToLanding?: () => void;
   stats?: {
     total_nodes: number;
     total_edges: number;
@@ -36,12 +37,22 @@ export default function TopBar({
   onSearchChange,
   onTriggerReplay,
   onRefresh,
+  onReturnToLanding,
   stats
 }: TopBarProps) {
   return (
     <header className="flex h-16 w-full items-center justify-between border-b border-slate-800/80 bg-slate-950/90 px-4 backdrop-blur-md">
-      {/* Brand & Logo */}
+      {/* Brand & Logo + Return to Landing Button */}
       <div className="flex items-center gap-3">
+        {onReturnToLanding && (
+          <button
+            onClick={onReturnToLanding}
+            className="flex items-center gap-1.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-xs font-semibold text-cyan-400 hover:bg-cyan-500/20 transition"
+          >
+            <span>← Landing Page</span>
+          </button>
+        )}
+
         <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-700 p-1 shadow-md shadow-cyan-900/30">
           <Image
             src="/logo-no-bg.png"

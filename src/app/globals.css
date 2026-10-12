@@ -1,26 +1,176 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #05070D;
+  --secondary-bg: #0A101A;
+  --foreground: #F5F7FA;
+  --secondary-text: #9CA9BB;
+  --electric-cyan: #25D9F2;
+  --neon-teal: #20E3C2;
+  --violet: #9B70FF;
+  --accent-red: #FF5D65;
+  --border-subtle: rgba(255, 255, 255, 0.10);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #080C15;
+  background-image: radial-gradient(circle at 50% 0%, #0F172A 0%, #080C15 70%);
+  color: #F8FAFC;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
+
+/* Finfluence Grid Pattern Overlay */
+.finfluence-grid-bg {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Glassmorphism Panels */
+.glass-panel {
+  background: rgba(10, 16, 26, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.glass-panel-elevated {
+  background: rgba(15, 23, 38, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(37, 217, 242, 0.08);
+}
+
+.glass-panel-interactive {
+  background: rgba(10, 16, 26, 0.7);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-interactive:hover {
+  border-color: rgba(37, 217, 242, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(37, 217, 242, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Glowing Neon Elements */
+.cyan-glow {
+  box-shadow: 0 0 20px rgba(37, 217, 242, 0.35);
+}
+
+.teal-glow {
+  box-shadow: 0 0 20px rgba(32, 227, 194, 0.35);
+}
+
+.violet-glow {
+  box-shadow: 0 0 20px rgba(155, 112, 255, 0.35);
+}
+
+.red-glow {
+  box-shadow: 0 0 20px rgba(255, 93, 101, 0.35);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #05070D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(37, 217, 242, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 217, 242, 0.6);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.04); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes float-vertical {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float-vertical {
+  animation: float-vertical 4.5s ease-in-out infinite;
+}
+
+@keyframes slide-up-vertical {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  14%, 86% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes scroll-horizontal {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  14%, 86% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+.animate-scroll-horizontal {
+  animation: scroll-horizontal 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
