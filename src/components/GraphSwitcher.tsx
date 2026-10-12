@@ -19,7 +19,7 @@ export default function GraphSwitcher({ activeGraph, onSelectGraph }: GraphSwitc
   const activeOption = graphOptions.find((option) => option.id === activeGraph) || graphOptions[0];
 
   return (
-    <div className="pointer-events-auto absolute right-4 top-4 z-[200]">
+    <div style={{ position: 'fixed', top: '104px', right: '24px', zIndex: 9999 }} className="pointer-events-auto">
       <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="flex h-10 items-center gap-2 rounded-xl border border-white/[0.14] bg-[#0b1114]/90 px-3 text-left shadow-lg backdrop-blur-xl hover:border-cyan-300/40 hover:bg-[#132027]">
         <FolderOpen className="h-3.5 w-3.5 text-cyan-200" />
         <span className="hidden max-w-[150px] truncate text-[11px] font-medium text-zinc-100 sm:block">{activeOption.label}</span>

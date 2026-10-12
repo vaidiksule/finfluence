@@ -22,7 +22,7 @@ export default function TopBar({
   const searchRef = useRef<HTMLInputElement>(null);
 
   return (
-    <header className="relative z-[100] mx-3 mt-3 flex min-h-[78px] shrink-0 items-center overflow-visible rounded-2xl border border-white/[0.12] bg-[#0b1114]/90 px-4 py-3 shadow-[0_16px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl sm:mx-6 sm:mt-5 sm:h-[78px] sm:px-6 sm:py-0">
+    <header style={{ margin: '16px 24px 0', width: 'calc(100% - 48px)', minHeight: '78px' }} className="relative z-[100] flex shrink-0 items-center overflow-visible rounded-2xl border border-white/[0.12] bg-[#0b1114]/90 px-4 py-3 shadow-[0_16px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl sm:h-[78px] sm:px-6 sm:py-0">
       <div className="flex w-full flex-wrap items-center gap-3 sm:flex-nowrap sm:gap-5">
         <div className="flex min-w-0 flex-1 items-center gap-3 pr-0 sm:min-w-[245px] sm:flex-none sm:border-r sm:border-white/[0.08] sm:pr-6">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#111b21] p-1.5">
