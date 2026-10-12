@@ -16,6 +16,11 @@ export const metadata: Metadata = {
     "cumulative abnormal returns",
   ],
   authors: [{ name: "Finfluence Team" }],
+  icons: {
+    icon: "/logo-no-bg.png",
+    shortcut: "/logo-no-bg.png",
+    apple: "/logo-no-bg.png",
+  },
 };
 
 export default function RootLayout({

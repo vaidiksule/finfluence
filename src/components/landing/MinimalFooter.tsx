@@ -9,12 +9,12 @@ export default function MinimalFooter() {
       <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Brand */}
         <div className="flex items-center gap-2.5">
-          <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 border border-white/10">
+          <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 border border-white/10 overflow-hidden">
             <Image
               src="/logo-no-bg.png"
               alt="Finfluence"
-              width={18}
-              height={18}
+              width={22}
+              height={22}
               className="object-contain"
             />
           </div>

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Network,
   X,
@@ -47,9 +48,14 @@ export default function NavigationBar({
           onClick={onResetHome}
           className="flex cursor-pointer items-center gap-3 transition hover:opacity-90"
         >
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#7B61FF]/50 bg-gradient-to-br from-[#7B61FF]/20 via-[#1E1F3B] to-[#0B0C1E] shadow-[0_0_16px_rgba(123,97,255,0.35)]">
-            {/* Connected nodes icon */}
-            <Network className="h-5 w-5 text-[#7B61FF]" />
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#7B61FF]/50 bg-gradient-to-br from-[#7B61FF]/20 via-[#1E1F3B] to-[#0B0C1E] shadow-[0_0_16px_rgba(123,97,255,0.35)] overflow-hidden">
+            <Image
+              src="/logo-no-bg.png"
+              alt="Finfluence Logo"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
             <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#38BDF8] opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#38BDF8]" />

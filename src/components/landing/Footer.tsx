@@ -25,12 +25,12 @@ export default function Footer() {
             {/* Col 1: Brand & Description */}
             <div className="md:col-span-2 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#25D9F2]/40 bg-[#0A101A] shadow-[0_0_15px_rgba(37,217,242,0.25)]">
+                <div className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#25D9F2]/40 bg-[#0A101A] shadow-[0_0_15px_rgba(37,217,242,0.25)] overflow-hidden">
                   <Image
                     src="/logo-no-bg.png"
                     alt="Finfluence Logo"
-                    width={22}
-                    height={22}
+                    width={26}
+                    height={26}
                     className="object-contain"
                   />
                 </div>

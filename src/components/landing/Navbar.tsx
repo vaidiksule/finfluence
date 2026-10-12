@@ -34,12 +34,12 @@ export default function Navbar({ onExploreGraph, onLaunchPlatform }: NavbarProps
       <div className="mx-auto max-w-7xl flex items-center justify-between">
         {/* Left: Brand Logo */}
         <a href="#home" className="flex items-center gap-2.5 group">
-          <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 border border-white/10 group-hover:border-white/20 transition">
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 border border-white/10 group-hover:border-white/20 transition overflow-hidden">
             <Image
               src="/logo-no-bg.png"
               alt="Finfluence"
-              width={22}
-              height={22}
+              width={26}
+              height={26}
               className="object-contain"
               priority
             />
